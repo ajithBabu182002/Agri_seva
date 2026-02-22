@@ -389,27 +389,51 @@ class _CropPageState extends State<CropPage> {
   Widget _buildInitialView() {
     return Center(
       key: const ValueKey('initial'),
-      child: GestureDetector(
-        onTap: () => setState(() => _viewState = CropViewState.adding),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF2E7D32).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.3)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFE8F5E9),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.1), blurRadius: 20, spreadRadius: 5),
+              ],
+            ),
+            child: const Icon(Icons.eco_rounded, size: 80, color: Color(0xFF2E7D32)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Add Your Crop Details",
-                style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20)),
-              ),
-              const SizedBox(height: 8),
-              Text("Tap to start", style: GoogleFonts.outfit(color: Colors.grey[600], fontSize: 13)),
-            ],
+          const SizedBox(height: 32),
+          Text(
+            "Empower Your Harvest",
+            style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w800, color: const Color(0xFF1B5E20)),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            "Share your crop details with the community",
+            style: GoogleFonts.outfit(color: Colors.grey[600], fontSize: 16),
+          ),
+          const SizedBox(height: 48),
+          ElevatedButton(
+            onPressed: () => setState(() => _viewState = CropViewState.adding),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 8,
+              shadowColor: const Color(0xFF2E7D32).withOpacity(0.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Start Adding", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 12),
+                const Icon(Icons.arrow_forward_rounded),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -421,15 +445,30 @@ class _CropPageState extends State<CropPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text("Profile Settings", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+          const SizedBox(height: 24),
           _buildReadOnlyProfileHeader(),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Add Crop", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
-              IconButton(onPressed: _addCropEntry, icon: const Icon(Icons.add_circle, color: Color(0xFF2E7D32), size: 30)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Your Crops", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text("Add images and names of your produce", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600])),
+                ],
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(onPressed: _addCropEntry, icon: const Icon(Icons.add_rounded, color: Color(0xFF2E7D32), size: 28)),
+              ),
             ],
           ),
+          const SizedBox(height: 24),
           const SizedBox(height: 16),
           ...List.generate(_cropNameControllers.length, (i) => _buildCropEntry(i)),
           const SizedBox(height: 32),
@@ -475,23 +514,54 @@ class _CropPageState extends State<CropPage> {
 
   Widget _buildReadOnlyProfileHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey[200]!)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+        border: Border.all(color: Colors.grey[100]!),
+      ),
       child: Column(
         children: [
           Row(
             children: [
-              CircleAvatar(radius: 35, backgroundImage: _profile?['avatar_url'] != null ? NetworkImage(_profile!['avatar_url']) : null, child: _profile?['avatar_url'] == null ? const Icon(Icons.person) : null),
-              const SizedBox(width: 16),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.2), width: 3),
+                ),
+                child: CircleAvatar(
+                  radius: 38,
+                  backgroundColor: const Color(0xFFE8F5E9),
+                  backgroundImage: _profile?['avatar_url'] != null ? NetworkImage(_profile!['avatar_url']) : null,
+                  child: _profile?['avatar_url'] == null ? const Icon(Icons.person, size: 40, color: Color(0xFF2E7D32)) : null,
+                ),
+              ),
+              const SizedBox(width: 20),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_profile?['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(_profile?['phone_number'] ?? "", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600])),
-                ]),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_profile?['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.phone_rounded, size: 14, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Text(_profile?['phone_number'] ?? "", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const Divider(height: 32),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(height: 1),
+          ),
           _buildReadOnlyGrid(),
         ],
       ),
@@ -517,9 +587,16 @@ class _CropPageState extends State<CropPage> {
   Widget _buildCropEntry(int index) {
     bool isLatest = index == 0;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.grey[200]!)),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
+        ],
+        border: Border.all(color: Colors.grey[100]!),
+      ),
       child: Column(
         children: [
           Row(
@@ -527,31 +604,49 @@ class _CropPageState extends State<CropPage> {
               Expanded(
                 child: TextField(
                   controller: _cropNameControllers[index],
-                  decoration: InputDecoration(hintText: "Crop Name", border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: "Enter crop name",
+                    hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontWeight: FontWeight.normal),
+                    prefixIcon: const Icon(Icons.grass_rounded, color: Color(0xFF2E7D32)),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               IconButton(
-                onPressed: isLatest ? _addCropEntry : () => _confirmDeleteEntry(index),
-                icon: Icon(isLatest ? Icons.add_circle : Icons.remove_circle, color: isLatest ? Colors.green : Colors.red),
+                onPressed: isLatest ? null : () => _confirmDeleteEntry(index),
+                icon: Icon(isLatest ? Icons.check_circle : Icons.remove_circle_outline, 
+                     color: isLatest ? Colors.grey[300] : Colors.red[400]),
               ),
-              if (!isLatest)
-                IconButton(
-                  onPressed: () => _showCropPreview(index),
-                  icon: const Icon(Icons.visibility_rounded, color: Color(0xFF2E7D32)),
-                ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           GestureDetector(
             onTap: () => _pickCropImage(index),
             child: Container(
-              height: 100, width: double.infinity,
-              decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+              height: 140,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[200]!, style: BorderStyle.solid),
+              ),
               child: _cropImageBytes[index] != null 
-                ? ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.memory(_cropImageBytes[index]!, fit: BoxFit.cover))
+                ? ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.memory(_cropImageBytes[index]!, fit: BoxFit.cover))
                 : (_cropImageUrls[index] != null 
-                    ? ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(_cropImageUrls[index]!, fit: BoxFit.cover))
-                    : const Icon(Icons.camera_alt, color: Colors.grey)),
+                    ? ClipRRect(borderRadius: BorderRadius.circular(20), child: Image.network(_cropImageUrls[index]!, fit: BoxFit.cover))
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo_rounded, color: Colors.grey[400], size: 40),
+                          const SizedBox(height: 8),
+                          Text("Add Crop Image", style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.w500)),
+                        ],
+                      )),
             ),
           ),
         ],
@@ -577,33 +672,66 @@ class _CropPageState extends State<CropPage> {
   Widget _buildFilterSection() {
     bool isEnterDisabled = _searchCountry.text.isEmpty && _searchState.text.isEmpty && _searchDistrict.text.isEmpty && _searchTaluk.text.isEmpty && _searchVillage.text.isEmpty;
     return Container(
+      margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+        border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.1)),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Location Filter", style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          _buildFilterInput(_searchCountry, "Country"),
+          Row(
+            children: [
+              const Icon(Icons.location_on_rounded, color: Color(0xFF2E7D32), size: 20),
+              const SizedBox(width: 10),
+              Text("Browse by Location", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildFilterInput(_searchCountry, "Country", Icons.public_rounded),
           const SizedBox(height: 12),
-          Row(children: [Expanded(child: _buildFilterInput(_searchState, "State")), const SizedBox(width: 12), Expanded(child: _buildFilterInput(_searchDistrict, "District"))]),
+          Row(children: [
+            Expanded(child: _buildFilterInput(_searchState, "State", Icons.map_rounded)), 
+            const SizedBox(width: 12), 
+            Expanded(child: _buildFilterInput(_searchDistrict, "District", Icons.location_city_rounded))
+          ]),
           const SizedBox(height: 12),
-          Row(children: [Expanded(child: _buildFilterInput(_searchTaluk, "Taluk")), const SizedBox(width: 12), Expanded(child: _buildFilterInput(_searchVillage, "Village"))]),
-          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(child: _buildFilterInput(_searchTaluk, "Taluk", Icons.corporate_fare_rounded)), 
+            const SizedBox(width: 12), 
+            Expanded(child: _buildFilterInput(_searchVillage, "Village", Icons.holiday_village_rounded))
+          ]),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton(
                   onPressed: isEnterDisabled ? null : _searchFarmers,
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                  child: Text("Enter", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32), 
+                    foregroundColor: Colors.white, 
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                  ),
+                  child: Text("Apply Filter", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _clearFilters,
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.grey, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                  child: Text("Clear", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              OutlinedButton(
+                onPressed: _clearFilters,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey[600], 
+                  side: BorderSide(color: Colors.grey[300]!),
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
                 ),
+                child: const Icon(Icons.refresh_rounded),
               ),
             ],
           ),
@@ -612,11 +740,20 @@ class _CropPageState extends State<CropPage> {
     );
   }
 
-  Widget _buildFilterInput(TextEditingController ctrl, String hint) {
+  Widget _buildFilterInput(TextEditingController ctrl, String hint, IconData icon) {
     return TextField(
       controller: ctrl,
       onChanged: (_) => setState(() {}),
-      decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        hintText: hint, 
+        prefixIcon: Icon(icon, size: 18, color: const Color(0xFF2E7D32).withOpacity(0.7)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), 
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
+      ),
     );
   }
 
@@ -624,40 +761,77 @@ class _CropPageState extends State<CropPage> {
     bool isAvailable = data['is_available'] ?? true;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))], border: Border.all(color: Colors.grey[100]!)),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(data['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
-                    _buildToggle(isAvailable, isMine),
-                    const SizedBox(height: 10),
-                    InkWell(
-                      onTap: () => _showProfileDetails(data),
-                      child: Text(
-                        isMine ? "View Profile" : "View Details", 
-                        style: GoogleFonts.outfit(
-                          fontSize: 12, 
-                          color: const Color(0xFF2E7D32), 
-                          fontWeight: FontWeight.bold, 
-                          decoration: TextDecoration.underline
-                        )
-                      ),
-                    ),
-                  ],
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 2, spreadRadius: 0),
+        ],
+        border: Border.all(color: Colors.grey[50]!),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, const Color(0xFFF1F8E9).withOpacity(0.3)],
                 ),
               ),
-              CircleAvatar(radius: 35, backgroundImage: data['avatar_url'] != null ? NetworkImage(data['avatar_url']) : null, child: data['avatar_url'] == null ? const Icon(Icons.person) : null),
-            ],
-          ),
-          const Divider(height: 24),
-          _buildCropPreviewList(data['crop_data'] as List? ?? [], isMine),
-        ],
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: (isAvailable ? Colors.green : Colors.red).withOpacity(0.3), width: 2),
+                        ),
+                        child: CircleAvatar(
+                          radius: 35, 
+                          backgroundColor: Colors.white,
+                          backgroundImage: data['avatar_url'] != null ? NetworkImage(data['avatar_url']) : null, 
+                          child: data['avatar_url'] == null ? Icon(Icons.person, size: 30, color: Colors.grey[400]) : null
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(data['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+                            const SizedBox(height: 6),
+                            _buildToggle(isAvailable, isMine),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showProfileDetails(data),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF2E7D32),
+                          elevation: 2,
+                          shadowColor: Colors.black.withOpacity(0.2),
+                        ),
+                        icon: const Icon(Icons.info_outline_rounded, size: 22),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+                  _buildCropPreviewList(data['crop_data'] as List? ?? [], isMine),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -665,54 +839,76 @@ class _CropPageState extends State<CropPage> {
   Widget _buildCropPreviewList(List crops, bool isMine) {
     if (crops.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 80,
+      height: 110,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: crops.length,
         itemBuilder: (context, idx) {
           final crop = crops[idx];
           return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(8),
+            width: 140,
+            margin: const EdgeInsets.only(right: 16, bottom: 4),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green[50],
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.green[100]!),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+              ],
+              border: Border.all(color: const Color(0xFFE8F5E9)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (crop['crop_image_url'] != null)
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.network(crop['crop_image_url'], width: 30, height: 30, fit: BoxFit.cover),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(crop['crop_image_url'], width: 35, height: 35, fit: BoxFit.cover),
+                      )
+                    else 
+                      Container(
+                        width: 35, height: 35, 
+                        decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.grass_rounded, size: 20, color: Colors.grey),
                       ),
-                    const SizedBox(width: 8),
-                    Text(crop['crop_name'] ?? "-", style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF1B5E20), fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        crop['crop_name'] ?? "-", 
+                        style: GoogleFonts.outfit(fontSize: 13, color: const Color(0xFF1B5E20), fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => _viewSingleCrop(crop), 
-                      icon: const Icon(Icons.visibility_rounded, size: 16, color: Colors.green)
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _viewSingleCrop(crop),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF2E7D32)),
+                        ),
+                      ),
                     ),
                     if (isMine) ...[
                       const SizedBox(width: 8),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () => _deleteCropFromDb(crop['id']), 
-                        icon: const Icon(Icons.remove_circle_outline, size: 16, color: Colors.red)
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _deleteCropFromDb(crop['id']),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(color: const Color(0xFFFFEBEE), borderRadius: BorderRadius.circular(8)),
+                            child: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
+                          ),
+                        ),
                       ),
                     ],
                   ],

@@ -387,53 +387,91 @@ class _CropPageState extends State<CropPage> {
   }
 
   Widget _buildInitialView() {
-    return Center(
+    return Container(
       key: const ValueKey('initial'),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFE8F5E9),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.1), blurRadius: 20, spreadRadius: 5),
-              ],
-            ),
-            child: const Icon(Icons.eco_rounded, size: 80, color: Color(0xFF2E7D32)),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            "Empower Your Harvest",
-            style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w800, color: const Color(0xFF1B5E20)),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Share your crop details with the community",
-            style: GoogleFonts.outfit(color: Colors.grey[600], fontSize: 16),
-          ),
-          const SizedBox(height: 48),
-          ElevatedButton(
-            onPressed: () => setState(() => _viewState = CropViewState.adding),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              elevation: 8,
-              shadowColor: const Color(0xFF2E7D32).withOpacity(0.5),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, const Color(0xFFF0FDF4).withOpacity(0.5)],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
               children: [
-                Text("Start Adding", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 12),
-                const Icon(Icons.arrow_forward_rounded),
+                Container(
+                  width: 180, height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF10B981).withOpacity(0.05),
+                  ),
+                ),
+                Container(
+                  width: 140, height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF10B981).withOpacity(0.1),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.1), blurRadius: 40, spreadRadius: 2),
+                    ],
+                  ),
+                  child: const Icon(Icons.eco_rounded, size: 60, color: Color(0xFF10B981)),
+                ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 48),
+            Text(
+              "Agrovia Global",
+              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF10B981), letterSpacing: 2),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Empower Your Harvest",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B), height: 1.1),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "Connect with farmers and showcase your produce to the digital world.",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 16, height: 1.5),
+              ),
+            ),
+            const SizedBox(height: 56),
+            ElevatedButton(
+              onPressed: () => setState(() => _viewState = CropViewState.adding),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF064E3B),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 20),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                elevation: 12,
+                shadowColor: const Color(0xFF064E3B).withOpacity(0.4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Get Started", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.arrow_forward_rounded, size: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -441,11 +479,23 @@ class _CropPageState extends State<CropPage> {
   Widget _buildAddingView() {
     return SingleChildScrollView(
       key: const ValueKey('adding'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Profile Settings", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              "DASHBOARD",
+              style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF064E3B), letterSpacing: 1.5),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text("Profile Settings", style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
           const SizedBox(height: 24),
           _buildReadOnlyProfileHeader(),
           const SizedBox(height: 40),
@@ -455,16 +505,19 @@ class _CropPageState extends State<CropPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Your Crops", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Text("Add images and names of your produce", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600])),
+                  Text("Your Produce", style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
+                  Text("Manage what you grown", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[500])),
                 ],
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF064E3B),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+                  ],
                 ),
-                child: IconButton(onPressed: _addCropEntry, icon: const Icon(Icons.add_rounded, color: Color(0xFF2E7D32), size: 28)),
+                child: IconButton(onPressed: _addCropEntry, icon: const Icon(Icons.add_rounded, color: Colors.white, size: 28)),
               ),
             ],
           ),
@@ -481,11 +534,11 @@ class _CropPageState extends State<CropPage> {
                     setState(() => _viewState = hasCrops ? CropViewState.results : CropViewState.initial);
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16), 
-                    side: const BorderSide(color: Colors.red), 
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                    padding: const EdgeInsets.symmetric(vertical: 18), 
+                    side: BorderSide(color: Colors.red[200]!), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
                   ),
-                  child: Text("Cancel", style: GoogleFonts.outfit(color: Colors.red, fontWeight: FontWeight.bold)),
+                  child: Text("Cancel", style: GoogleFonts.outfit(color: Colors.red[400], fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
               const SizedBox(width: 16),
@@ -496,13 +549,15 @@ class _CropPageState extends State<CropPage> {
                               List.generate(_cropNameControllers.length, (i) => _cropImageBytes[i] != null || _cropImageUrls[i] != null).every((hasImg) => hasImg)) 
                                ? _updateCrops : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E7D32), 
+                    backgroundColor: const Color(0xFF064E3B), 
                     foregroundColor: Colors.white, 
-                    padding: const EdgeInsets.symmetric(vertical: 16), 
-                    disabledBackgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                    padding: const EdgeInsets.symmetric(vertical: 18), 
+                    elevation: 8,
+                    shadowColor: const Color(0xFF064E3B).withOpacity(0.4),
+                    disabledBackgroundColor: Colors.grey[200],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
                   ),
-                  child: Text("Update", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                  child: Text("Update Profile", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
             ],
@@ -517,26 +572,27 @@ class _CropPageState extends State<CropPage> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.06), blurRadius: 30, offset: const Offset(0, 15)),
         ],
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Container(
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.2), width: 3),
+                  gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF064E3B)]),
                 ),
                 child: CircleAvatar(
-                  radius: 38,
-                  backgroundColor: const Color(0xFFE8F5E9),
+                  radius: 40,
+                  backgroundColor: Colors.white,
                   backgroundImage: _profile?['avatar_url'] != null ? NetworkImage(_profile!['avatar_url']) : null,
-                  child: _profile?['avatar_url'] == null ? const Icon(Icons.person, size: 40, color: Color(0xFF2E7D32)) : null,
+                  child: _profile?['avatar_url'] == null ? const Icon(Icons.person, size: 40, color: Color(0xFF064E3B)) : null,
                 ),
               ),
               const SizedBox(width: 20),
@@ -544,14 +600,22 @@ class _CropPageState extends State<CropPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_profile?['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.phone_rounded, size: 14, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Text(_profile?['phone_number'] ?? "", style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-                      ],
+                    Text(_profile?['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.phone_rounded, size: 12, color: Color(0xFF064E3B)),
+                          const SizedBox(width: 6),
+                          Text(_profile?['phone_number'] ?? "", style: GoogleFonts.outfit(fontSize: 13, color: const Color(0xFF064E3B), fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -559,8 +623,8 @@ class _CropPageState extends State<CropPage> {
             ],
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(height: 1),
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
           ),
           _buildReadOnlyGrid(),
         ],
@@ -608,7 +672,7 @@ class _CropPageState extends State<CropPage> {
                   decoration: InputDecoration(
                     hintText: "Enter crop name",
                     hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontWeight: FontWeight.normal),
-                    prefixIcon: const Icon(Icons.grass_rounded, color: Color(0xFF2E7D32)),
+                    prefixIcon: const Icon(Icons.grass_rounded, color: Color(0xFF10B981)),
                     filled: true,
                     fillColor: Colors.grey[50],
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -661,7 +725,7 @@ class _CropPageState extends State<CropPage> {
         children: [
           _buildFarmerCard(_profile!, isMine: true),
           _buildFilterSection(),
-          if (_isSearchLoading) const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Colors.green))
+          if (_isSearchLoading) const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Color(0xFF10B981)))
           else ..._fetchedFarmers.map((f) => _buildFarmerCard(f)),
           const SizedBox(height: 40),
         ],
@@ -676,64 +740,61 @@ class _CropPageState extends State<CropPage> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(36),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.08), blurRadius: 40, offset: const Offset(0, 20)),
         ],
-        border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.1)),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.location_on_rounded, color: Color(0xFF2E7D32), size: 20),
-              const SizedBox(width: 10),
-              Text("Browse by Location", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+              Row(
+                children: [
+                  const Icon(Icons.search_rounded, color: Color(0xFF10B981), size: 22),
+                  const SizedBox(width: 12),
+                  Text("Find Farmers", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
+                ],
+              ),
+              if (!isEnterDisabled)
+                GestureDetector(
+                  onTap: _clearFilters,
+                  child: Text("Clear All", style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red[400])),
+                ),
             ],
           ),
-          const SizedBox(height: 24),
-          _buildFilterInput(_searchCountry, "Country", Icons.public_rounded),
-          const SizedBox(height: 12),
+          const SizedBox(height: 28),
+          _buildFilterInput(_searchCountry, "Country", Icons.language_rounded),
+          const SizedBox(height: 14),
           Row(children: [
             Expanded(child: _buildFilterInput(_searchState, "State", Icons.map_rounded)), 
-            const SizedBox(width: 12), 
-            Expanded(child: _buildFilterInput(_searchDistrict, "District", Icons.location_city_rounded))
+            const SizedBox(width: 14), 
+            Expanded(child: _buildFilterInput(_searchDistrict, "District", Icons.account_balance_rounded))
           ]),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: _buildFilterInput(_searchTaluk, "Taluk", Icons.corporate_fare_rounded)), 
-            const SizedBox(width: 12), 
-            Expanded(child: _buildFilterInput(_searchVillage, "Village", Icons.holiday_village_rounded))
+            Expanded(child: _buildFilterInput(_searchTaluk, "Taluk", Icons.location_city_rounded)), 
+            const SizedBox(width: 14), 
+            Expanded(child: _buildFilterInput(_searchVillage, "Village", Icons.grass_rounded))
           ]),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: isEnterDisabled ? null : _searchFarmers,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E7D32), 
-                    foregroundColor: Colors.white, 
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-                  ),
-                  child: Text("Apply Filter", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isEnterDisabled ? null : _searchFarmers,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF064E3B), 
+                foregroundColor: Colors.white, 
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                elevation: 8,
+                shadowColor: const Color(0xFF064E3B).withOpacity(0.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
               ),
-              const SizedBox(width: 12),
-              OutlinedButton(
-                onPressed: _clearFilters,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.grey[600], 
-                  side: BorderSide(color: Colors.grey[300]!),
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-                ),
-                child: const Icon(Icons.refresh_rounded),
-              ),
-            ],
+              child: Text("Search Profiles", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
           ),
         ],
       ),
@@ -744,15 +805,16 @@ class _CropPageState extends State<CropPage> {
     return TextField(
       controller: ctrl,
       onChanged: (_) => setState(() {}),
-      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w500),
+      style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF064E3B)),
       decoration: InputDecoration(
         hintText: hint, 
-        prefixIcon: Icon(icon, size: 18, color: const Color(0xFF2E7D32).withOpacity(0.7)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), 
+        hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontWeight: FontWeight.w500),
+        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF10B981).withOpacity(0.8)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18), 
         filled: true,
-        fillColor: Colors.grey[50],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF10B981), width: 2)),
       ),
     );
   }
@@ -760,27 +822,27 @@ class _CropPageState extends State<CropPage> {
   Widget _buildFarmerCard(Map<String, dynamic> data, {bool isMine = false}) {
     bool isAvailable = data['is_available'] ?? true;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(40),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.06), blurRadius: 40, offset: const Offset(0, 15)),
           BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 2, spreadRadius: 0),
         ],
-        border: Border.all(color: Colors.grey[50]!),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(40),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.white, const Color(0xFFF1F8E9).withOpacity(0.3)],
+                  colors: [Colors.white, const Color(0xFFF0FDF4).withOpacity(0.4)],
                 ),
               ),
               child: Column(
@@ -788,44 +850,48 @@ class _CropPageState extends State<CropPage> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(2),
+                        padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: (isAvailable ? Colors.green : Colors.red).withOpacity(0.3), width: 2),
+                          border: Border.all(color: (isAvailable ? const Color(0xFF10B981) : Colors.red).withOpacity(0.4), width: 2.5),
                         ),
                         child: CircleAvatar(
-                          radius: 35, 
-                          backgroundColor: Colors.white,
+                          radius: 38, 
+                          backgroundColor: const Color(0xFFF1F5F9),
                           backgroundImage: data['avatar_url'] != null ? NetworkImage(data['avatar_url']) : null, 
-                          child: data['avatar_url'] == null ? Icon(Icons.person, size: 30, color: Colors.grey[400]) : null
+                          child: data['avatar_url'] == null ? const Icon(Icons.person, size: 35, color: Color(0xFFCBD5E1)) : null
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 18),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(data['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
-                            const SizedBox(height: 6),
+                            Text(data['full_name'] ?? "", style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
+                            const SizedBox(height: 8),
                             _buildToggle(isAvailable, isMine),
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => _showProfileDetails(data),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF2E7D32),
-                          elevation: 2,
-                          shadowColor: Colors.black.withOpacity(0.2),
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        elevation: 4,
+                        shadowColor: Colors.black.withOpacity(0.1),
+                        child: InkWell(
+                          onTap: () => _showProfileDetails(data),
+                          borderRadius: BorderRadius.circular(16),
+                          child: const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Color(0xFF064E3B)),
+                          ),
                         ),
-                        icon: const Icon(Icons.info_outline_rounded, size: 22),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
                   const SizedBox(height: 20),
-                  const Divider(height: 1),
-                  const SizedBox(height: 16),
                   _buildCropPreviewList(data['crop_data'] as List? ?? [], isMine),
                 ],
               ),
@@ -923,26 +989,38 @@ class _CropPageState extends State<CropPage> {
 
   Widget _buildToggle(bool active, bool editable) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (editable)
-          Switch(
-            value: active, 
-            onChanged: (v) => _updateAvailability(v), 
-            activeColor: Colors.green
+          Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: active, 
+              onChanged: (v) => _updateAvailability(v), 
+              activeColor: const Color(0xFF10B981),
+              activeTrackColor: const Color(0xFF10B981).withOpacity(0.2),
+            ),
           )
         else
-          Icon(
-            active ? Icons.check_circle : Icons.cancel, 
-            color: active ? Colors.green : Colors.red,
-            size: 20,
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: (active ? const Color(0xFF10B981) : Colors.red).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              active ? Icons.check_rounded : Icons.close_rounded, 
+              color: active ? const Color(0xFF10B981) : Colors.red,
+              size: 14,
+            ),
           ),
         const SizedBox(width: 8),
         Text(
           active ? "Available" : "Not Available", 
           style: GoogleFonts.outfit(
-            fontSize: 12, 
-            fontWeight: FontWeight.bold, 
-            color: active ? Colors.green : Colors.red
+            fontSize: 13, 
+            fontWeight: FontWeight.w700, 
+            color: active ? const Color(0xFF064E3B) : Colors.red[700]
           )
         ),
       ],

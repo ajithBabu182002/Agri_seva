@@ -401,7 +401,7 @@ class _HomePageState extends State<HomePage> {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        title: Text("Agri Seva", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1, color: const Color(0xFF1B5E20))),
+        title: Text("Agrovia Global", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1, color: const Color(0xFF1B5E20))),
         centerTitle: true,
       ),
       drawer: _buildDrawer(),
@@ -416,10 +416,10 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.eco_rounded, size: 80, color: Colors.green.withOpacity(0.1)),
+          Image.asset('assets/logo.png', height: 100),
           const SizedBox(height: 16),
           Text(
-            "Welcome to Agri Seva",
+            "Welcome to Agrovia Global",
             style: GoogleFonts.outfit(
               fontSize: 22,
               fontWeight: FontWeight.w600,

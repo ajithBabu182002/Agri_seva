@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'Agri Seva',
+      title: 'Agrovia Global',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -87,16 +87,37 @@ class AuthBackground extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF004D40), // Deep Teal
-            Color(0xFF00695C), // Teal
-            Color(0xFF2E7D32), // Forest Green
+            Color(0xFF4CAF50), // Vibrant Green
+            Color(0xFF2E7D32), // Deep Forest Green
+            Color(0xFF1B5E20), // Darkest Green
           ],
         ),
       ),
-      child: child,
+      child: Stack(
+        children: [
+          // Subtle background texture or shapes
+          Positioned(
+            top: -100,
+            left: -100,
+            child: CircleAvatar(
+              radius: 200,
+              backgroundColor: Colors.white.withOpacity(0.05),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -50,
+            child: CircleAvatar(
+              radius: 150,
+              backgroundColor: const Color(0xFFFFD54F).withOpacity(0.05), // Sun Yellow hint
+            ),
+          ),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -114,18 +135,29 @@ class PrimaryButton extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF2E7D32).withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 8))
+          BoxShadow(
+            color: const Color(0xFF2E7D32).withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
         ],
       ),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1B5E20),
+          backgroundColor: const Color(0xFF2E7D32),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
-        child: Text(text, style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        child: Text(
+          text,
+          style: GoogleFonts.outfit(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
       ),
     );
   }
@@ -203,166 +235,281 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AuthBackground(
-        child: Stack(
-          children: [
-            // Decorative shapes for a more impressive look
-            Positioned(
-              top: -50,
-              right: -50,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      // Animated Logo Container
+                      Container(
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        child: Hero(
+                          tag: 'app_logo',
+                          child: Image.asset('assets/logo.png', height: 120),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Title Section
+                      Text(
+                        "Agrovia Global",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 4),
+                              blurRadius: 8,
                             ),
-                            child: const Icon(Icons.eco_rounded, size: 60, color: Colors.white),
-                          ),
-                          const SizedBox(height: 20),
-                          Text("Agri Seva", style: GoogleFonts.outfit(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
-                          Text("Connecting Farmers to the Future", style: GoogleFonts.outfit(fontSize: 16, color: Colors.white.withOpacity(0.8))),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 4,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(32),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(50), topRight: Radius.circular(50)),
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -10))],
+                      const SizedBox(height: 8),
+                      Text(
+                        "Empowering Agriculture Internationally",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.8),
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                      child: SingleChildScrollView(
+                      const SizedBox(height: 48),
+
+                      // Login Form Card
+                      Container(
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(35),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Welcome Back", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
-                            Text("Sign in to continue your journey", style: GoogleFonts.outfit(fontSize: 15, color: Colors.grey[500])),
-                            const SizedBox(height: 40),
+                            Text(
+                              "Welcome Back",
+                              style: GoogleFonts.outfit(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1B5E20),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Please sign in to your account",
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            
                             _buildInputField(
                               controller: _emailController,
-                              label: "Email Address",
+                              label: "Email ID",
                               icon: Icons.alternate_email_rounded,
+                              hintText: "example@agrovia.com",
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
                             _buildInputField(
                               controller: _passwordController,
                               label: "Password",
-                              icon: Icons.lock_outline_rounded,
+                              icon: Icons.lock_open_rounded,
                               isPassword: true,
+                              hintText: "••••••••",
                             ),
+                            
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                                child: Text("Forgot Password?", style: GoogleFonts.outfit(color: const Color(0xFF2E7D32), fontWeight: FontWeight.bold)),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                ),
+                                child: Text(
+                                  "Forgot Password?",
+                                  style: GoogleFonts.outfit(
+                                    color: const Color(0xFF2E7D32),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 24),
-                            if (_isLoading)
-                              const Center(child: CircularProgressIndicator(color: Colors.green))
-                            else
-                              PrimaryButton(text: "LOGIN", onPressed: _signIn),
                             
-                            const SizedBox(height: 24),
+                            if (_isLoading)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: CircularProgressIndicator(color: Color(0xFF2E7D32)),
+                                ),
+                              )
+                            else
+                              PrimaryButton(text: "SIGN IN", onPressed: _signIn),
+                            
+                            const SizedBox(height: 30),
+                            
+                            // Separator
                             Row(
                               children: [
-                                Expanded(child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[200], thickness: 1)),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text("OR", style: GoogleFonts.outfit(color: Colors.grey, fontWeight: FontWeight.bold)),
+                                  child: Text(
+                                    "OR CONNECT WITH",
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.grey[400],
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
                                 ),
-                                Expanded(child: Divider(color: Colors.grey[300])),
+                                Expanded(child: Divider(color: Colors.grey[200], thickness: 1)),
                               ],
                             ),
                             const SizedBox(height: 24),
-                            
-                            // Premium Google Button
+
+                            // Google Login Button
                             SizedBox(
                               width: double.infinity,
-                              height: 58,
+                              height: 56,
                               child: OutlinedButton(
                                 onPressed: _signInWithGoogle,
                                 style: OutlinedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  side: BorderSide(color: Colors.grey[200]!, width: 1.5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  side: BorderSide(color: Colors.grey[200]!),
                                   backgroundColor: Colors.white,
-                                  elevation: 0,
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Image.network(
                                       'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                                      height: 24,
+                                      height: 22,
                                     ),
                                     const SizedBox(width: 12),
-                                    Text("Sign in with Google", style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                                    Text(
+                                      "Google Account",
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
-                            
-                            const SizedBox(height: 30),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("New user?", style: GoogleFonts.outfit(color: Colors.grey[600])),
-                                TextButton(
-                                  onPressed: () => Navigator.pushNamed(context, '/signup'),
-                                  child: Text("Create Account", style: GoogleFonts.outfit(color: const Color(0xFF2E7D32), fontWeight: FontWeight.bold)),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
-                    ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Footer
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account?",
+                            style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pushNamed(context, '/signup'),
+                            child: Text(
+                              "Join Us",
+                              style: GoogleFonts.outfit(
+                                color: const Color(0xFFFFD54F), // Yellow accent
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInputField({required TextEditingController controller, required String label, required IconData icon, bool isPassword = false}) {
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    String? hintText,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
-        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
         TextField(
           controller: controller,
           obscureText: isPassword,
-          style: GoogleFonts.outfit(fontSize: 16, color: Colors.black87),
+          style: GoogleFonts.outfit(fontSize: 15, color: Colors.black87),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: const Color(0xFF2E7D32), size: 22),
+            hintText: hintText,
+            hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontSize: 14),
+            prefixIcon: Icon(icon, color: const Color(0xFF2E7D32), size: 20),
             filled: true,
             fillColor: Colors.grey[50],
-            contentPadding: const EdgeInsets.symmetric(vertical: 18),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+            ),
           ),
         ),
       ],
@@ -440,38 +587,93 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: Text("Create Account", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32.0),
-        child: Form(
-          key: _formKey,
+      body: AuthBackground(
+        child: SafeArea(
           child: Column(
             children: [
-              _buildAuthField(_nameController, "Full Name", Icons.person_outline),
-              const SizedBox(height: 16),
-              IntlPhoneField(
-                decoration: InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
-                initialCountryCode: 'IN',
-                onChanged: (phone) => _phoneController.text = phone.completeNumber,
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                title: Text(
+                  "Create Account",
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                centerTitle: true,
               ),
-              const SizedBox(height: 16),
-              _buildAuthField(_emailController, "Email Address", Icons.alternate_email, type: TextInputType.emailAddress),
-              const SizedBox(height: 16),
-              _buildAuthField(_passwordController, "Strong Password", Icons.lock_outline, obscure: true),
-              const SizedBox(height: 16),
-              _buildAuthField(_addressController, "Full Address", Icons.home_outlined, lines: 2),
-              const SizedBox(height: 16),
-              SelectState(
-                onCountryChanged: (v) => setState(() => _selectedCountry = v),
-                onStateChanged: (v) => setState(() => _selectedState = v),
-                onCityChanged: (v) {},
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          _buildAuthField(_nameController, "Full Name", Icons.person_outline_rounded),
+                          const SizedBox(height: 16),
+                          IntlPhoneField(
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              labelStyle: GoogleFonts.outfit(fontSize: 14),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            initialCountryCode: 'IN',
+                            onChanged: (phone) => _phoneController.text = phone.completeNumber,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildAuthField(_emailController, "Email Address", Icons.alternate_email_rounded, type: TextInputType.emailAddress),
+                          const SizedBox(height: 16),
+                          _buildAuthField(_passwordController, "Strong Password", Icons.lock_outline_rounded, obscure: true),
+                          const SizedBox(height: 16),
+                          _buildAuthField(_addressController, "Full Address", Icons.home_outlined, lines: 2),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: SelectState(
+                              onCountryChanged: (v) => setState(() => _selectedCountry = v),
+                              onStateChanged: (v) => setState(() => _selectedState = v),
+                              onCityChanged: (v) {},
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildAuthField(_pinController, "Pin Code", Icons.pin_drop_outlined, type: TextInputType.number),
+                          const SizedBox(height: 32),
+                          if (_isLoading)
+                            const CircularProgressIndicator(color: Color(0xFF2E7D32))
+                          else
+                            PrimaryButton(text: "Register Now", onPressed: _register),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              _buildAuthField(_pinController, "Pin Code", Icons.pin_drop_outlined, type: TextInputType.number),
-              const SizedBox(height: 32),
-              if (_isLoading) const CircularProgressIndicator() else PrimaryButton(text: "Create My Account", onPressed: _register),
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -485,8 +687,17 @@ class _SignUpPageState extends State<SignUpPage> {
       obscureText: obscure,
       keyboardType: type,
       maxLines: lines,
-      style: GoogleFonts.outfit(),
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon, size: 20)),
+      style: GoogleFonts.outfit(fontSize: 15),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.outfit(fontSize: 14),
+        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+      ),
       validator: (v) => v!.isEmpty ? 'This field is required' : null,
     );
   }
@@ -575,55 +786,127 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text("Account Recovery", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          children: [
-            const Icon(Icons.security_rounded, size: 80, color: Colors.green),
-            const SizedBox(height: 20),
-            Text(
-              "Identify yourself to recover your account. Both email and phone number must match.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 40),
-            
-            // Email Field
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: "Registered Email",
-                prefixIcon: Icon(Icons.email_outlined, color: Colors.green[700]),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+      body: AuthBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                title: Text(
+                  "Recover Account",
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                centerTitle: true,
               ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Phone Field
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: "Registered Phone Number",
-                prefixIcon: Icon(Icons.phone_android_rounded, color: Colors.green[700]),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F8E9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.security_rounded, size: 60, color: Color(0xFF2E7D32)),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          "Identity Verification",
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1B5E20),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Both email and phone number must match our records to proceed.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(color: Colors.grey[600], fontSize: 13),
+                        ),
+                        const SizedBox(height: 40),
+                        
+                        // Email Field
+                        _buildRecoveryField(
+                          _emailController, 
+                          "Registered Email", 
+                          Icons.email_outlined,
+                          type: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // Phone Field
+                        _buildRecoveryField(
+                          _phoneController, 
+                          "Registered Phone", 
+                          Icons.phone_android_rounded,
+                          type: TextInputType.phone,
+                        ),
+                        
+                        const SizedBox(height: 40),
+                        if (_isLoading)
+                          const CircularProgressIndicator(color: Color(0xFF2E7D32))
+                        else
+                          PrimaryButton(text: "Verify Identity", onPressed: _handleRecovery),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 40),
-            if (_isLoading)
-              const CircularProgressIndicator(color: Colors.green)
-            else
-              PrimaryButton(text: "VERIFY & RECOVER", onPressed: _handleRecovery),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRecoveryField(TextEditingController controller, String label, IconData icon, {TextInputType type = TextInputType.text}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+          ),
+        ),
+        TextField(
+          controller: controller,
+          keyboardType: type,
+          style: GoogleFonts.outfit(fontSize: 15),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: const Color(0xFF2E7D32), size: 20),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -681,59 +964,93 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
     return Scaffold(
       body: AuthBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                  child: const Icon(Icons.security_update_good_rounded, size: 50, color: Colors.white),
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                const SizedBox(height: 24),
-                Text("Secure Your Account", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
-                Text("Create a strong new password", style: GoogleFonts.outfit(color: Colors.white70)),
-                
-                const SizedBox(height: 40),
-                
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(32),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(50), topRight: Radius.circular(50)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("New Password", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
-                      const SizedBox(height: 30),
-                      
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        style: GoogleFonts.outfit(),
-                        decoration: InputDecoration(
-                          labelText: "Enter New Password",
-                          prefixIcon: const Icon(Icons.lock_reset_rounded, color: Color(0xFF2E7D32)),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                title: Text(
+                  "Reset Password",
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                centerTitle: true,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
-                      ),
-                      
-                      const SizedBox(height: 40),
-                      if (_isLoading)
-                        const Center(child: CircularProgressIndicator(color: Colors.green))
-                      else
-                        PrimaryButton(text: "UPDATE PASSWORD", onPressed: _updatePassword),
-                      const SizedBox(height: 20),
-                    ],
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F8E9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.lock_reset_rounded, size: 60, color: Color(0xFF2E7D32)),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          "New Password",
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1B5E20),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Create a secure password to protect your account.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(color: Colors.grey[600], fontSize: 13),
+                        ),
+                        const SizedBox(height: 40),
+                        
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          style: GoogleFonts.outfit(fontSize: 15),
+                          decoration: InputDecoration(
+                            labelText: "Enter Password",
+                            labelStyle: GoogleFonts.outfit(fontSize: 14),
+                            prefixIcon: const Icon(Icons.vpn_key_rounded, color: Color(0xFF2E7D32), size: 20),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 40),
+                        if (_isLoading)
+                          const CircularProgressIndicator(color: Color(0xFF2E7D32))
+                        else
+                          PrimaryButton(text: "Update Password", onPressed: _updatePassword),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

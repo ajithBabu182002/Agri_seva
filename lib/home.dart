@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   String? _selectedCountry;
   String? _selectedState;
   String? _avatarUrl;
+  String _countryCode = '';
   bool _isLoading = true;
   bool _isSaving = false;
   int _selectedIndex = 0;
@@ -44,6 +45,7 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         _nameController.text = data['full_name'] ?? '';
+        _countryCode = data['country_code'] ?? '';
         _phoneController.text = data['phone_number'] ?? '';
         _addressController.text = data['address'] ?? '';
         _pinController.text = data['pin_code'] ?? '';
@@ -174,6 +176,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await Supabase.instance.client.from('profiles').update({
         'full_name': _nameController.text.trim(),
+        'country_code': _countryCode,
         'phone_number': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
         'country': _selectedCountry,

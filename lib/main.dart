@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
@@ -86,38 +87,9 @@ class AuthBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF4CAF50), // Vibrant Green
-            Color(0xFF2E7D32), // Deep Forest Green
-            Color(0xFF1B5E20), // Darkest Green
-          ],
-        ),
+        color: Color(0xFF1B5E20), // Solid Deep Green
       ),
-      child: Stack(
-        children: [
-          // Subtle background texture or shapes
-          Positioned(
-            top: -100,
-            left: -100,
-            child: CircleAvatar(
-              radius: 200,
-              backgroundColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            right: -50,
-            child: CircleAvatar(
-              radius: 150,
-              backgroundColor: const Color(0xFFFFD54F).withOpacity(0.05), // Sun Yellow hint
-            ),
-          ),
-          child,
-        ],
-      ),
+      child: child,
     );
   }
 }
@@ -172,6 +144,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -187,13 +160,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      _showError("Missing Info", "Please enter your email and password.");
-      return;
-    }
 
     setState(() => _isLoading = true);
     try {
@@ -326,20 +296,27 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             const SizedBox(height: 32),
-                            
-                            _buildInputField(
-                              controller: _emailController,
-                              label: "Email ID",
-                              icon: Icons.alternate_email_rounded,
-                              hintText: "example@agrovia.com",
-                            ),
-                            const SizedBox(height: 20),
-                            _buildInputField(
-                              controller: _passwordController,
-                              label: "Password",
-                              icon: Icons.lock_open_rounded,
-                              isPassword: true,
-                              hintText: "••••••••",
+                            Form(
+                              key: _formKey,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              child: Column(
+                                children: [
+                                  _buildInputField(
+                                    controller: _emailController,
+                                    label: "Email ID",
+                                    icon: Icons.alternate_email_rounded,
+                                    hintText: "example@agrovia.com",
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildInputField(
+                                    controller: _passwordController,
+                                    label: "Password",
+                                    icon: Icons.lock_open_rounded,
+                                    isPassword: true,
+                                    hintText: "••••••••",
+                                  ),
+                                ],
+                              ),
                             ),
                             
                             Align(
@@ -487,10 +464,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: isPassword,
           style: GoogleFonts.outfit(fontSize: 15, color: Colors.black87),
+          validator: (v) => (v == null || v.isEmpty) ? 'Please enter this field' : null,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontSize: 14),
@@ -509,6 +487,14 @@ class _LoginPageState extends State<LoginPage> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
             ),
           ),
         ),
@@ -535,28 +521,146 @@ class _SignUpPageState extends State<SignUpPage> {
   final _pinController = TextEditingController();
   String? _selectedCountry;
   String? _selectedState;
+  String _countryCode = '+91';
   bool _isLoading = false;
+  bool _isPhoneDuplicate = false;
+  bool _isEmailDuplicate = false;
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkPhoneDuplicate(String countryCode, String phoneNumber) async {
+    if (phoneNumber.isEmpty) return;
+    
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final check = await Supabase.instance.client
+          .from('profiles')
+          .select('id')
+          .eq('country_code', countryCode)
+          .eq('phone_number', phoneNumber)
+          .maybeSingle();
+      
+      if (mounted) {
+        setState(() {
+          _isPhoneDuplicate = check != null;
+        });
+        if (_isPhoneDuplicate) {
+          _formKey.currentState?.validate();
+        }
+      }
+    });
+  }
+
+  Future<void> _checkEmailDuplicate(String email) async {
+    if (email.isEmpty || !email.contains('@')) return;
+    
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final check = await Supabase.instance.client
+          .from('profiles')
+          .select('id')
+          .eq('email_id', email)
+          .maybeSingle();
+      
+      if (mounted) {
+        setState(() {
+          _isEmailDuplicate = check != null;
+        });
+        if (_isEmailDuplicate) {
+          _formKey.currentState?.validate();
+        }
+      }
+    });
+  }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await Supabase.instance.client.auth.signUp(
-        email: _emailController.text.trim(),
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      // Both flags are checked here as a final safety measure
+      if (_isEmailDuplicate || _isPhoneDuplicate) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
         password: _passwordController.text.trim(),
         data: {
           'full_name': _nameController.text.trim(),
+          'country_code': _countryCode,
           'phone_number': _phoneController.text.trim(),
-          'email_id': _emailController.text.trim(),
+          'email_id': email,
           'address': _addressController.text.trim(),
           'country': _selectedCountry,
           'state': _selectedState,
           'pin_code': _pinController.text.trim(),
         },
       );
+      
+      // If the user is created (and signed in, depending on email confirmation)
+      if (response.user != null) {
+        // We attempt to update the profiles table. 
+        // NOTE: If you get a 401 Unauthorized, ensure your RLS policy allows inserts 
+        // for authenticated or public users, or use a Supabase Trigger instead.
+        try {
+          await Supabase.instance.client.from('profiles').upsert({
+            'id': response.user!.id,
+            'full_name': _nameController.text.trim(),
+            'country_code': _countryCode,
+            'phone_number': _phoneController.text.trim(),
+            'email_id': _emailController.text.trim(),
+            'address': _addressController.text.trim(),
+            'country': _selectedCountry,
+            'state': _selectedState,
+            'pin_code': _pinController.text.trim(),
+            'updated_at': DateTime.now().toIso8601String(),
+          });
+        } catch (profileError) {
+          debugPrint("Profile insertion error: $profileError");
+          // Even if profile insert fails in code, the user is still created in Auth.
+        }
+      }
+
       if (mounted) _showSuccess();
+    } on AuthException catch (e) {
+      String message = 'Registration error: ${e.message}';
+      if (e.code == 'over_email_send_rate_limit') {
+        message = "Too many attempts. Please wait a few minutes before trying again or check your email for a verification link.";
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message, style: GoogleFonts.outfit()),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unexpected error: $e', style: GoogleFonts.outfit()),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -623,22 +727,39 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     child: Form(
                       key: _formKey,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       child: Column(
                         children: [
                           _buildAuthField(_nameController, "Full Name", Icons.person_outline_rounded),
                           const SizedBox(height: 16),
                           IntlPhoneField(
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             decoration: InputDecoration(
                               labelText: 'Phone Number',
                               labelStyle: GoogleFonts.outfit(fontSize: 14),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
                               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+                              errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Colors.redAccent)),
+                              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
                               filled: true,
                               fillColor: Colors.grey[50],
                             ),
                             initialCountryCode: 'IN',
-                            onChanged: (phone) => _phoneController.text = phone.completeNumber,
+                            onChanged: (phone) {
+                              _countryCode = phone.countryCode;
+                              _phoneController.text = phone.number;
+                              _checkPhoneDuplicate(phone.countryCode, phone.number);
+                            },
+                            validator: (phone) {
+                              if (phone == null || phone.number.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              if (_isPhoneDuplicate) {
+                                return 'Phone number already registered';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           _buildAuthField(_emailController, "Email Address", Icons.alternate_email_rounded, type: TextInputType.emailAddress),
@@ -647,18 +768,38 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 16),
                           _buildAuthField(_addressController, "Full Address", Icons.home_outlined, lines: 2),
                           const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: SelectState(
-                              onCountryChanged: (v) => setState(() => _selectedCountry = v),
-                              onStateChanged: (v) => setState(() => _selectedState = v),
-                              onCityChanged: (v) {},
-                            ),
+                          FormField<String>(
+                            builder: (FormFieldState<String> state) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: Colors.grey[200]!,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: SelectState(
+                                      onCountryChanged: (v) {
+                                        setState(() {
+                                          _selectedCountry = v;
+                                        });
+                                      },
+                                      onStateChanged: (v) {
+                                        setState(() {
+                                          _selectedState = v;
+                                        });
+                                      },
+                                      onCityChanged: (v) {},
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
                           _buildAuthField(_pinController, "Pin Code", Icons.pin_drop_outlined, type: TextInputType.number),
@@ -688,6 +829,11 @@ class _SignUpPageState extends State<SignUpPage> {
       keyboardType: type,
       maxLines: lines,
       style: GoogleFonts.outfit(fontSize: 15),
+      onChanged: (v) {
+        if (label == "Email Address") {
+          _checkEmailDuplicate(v.trim());
+        }
+      },
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.outfit(fontSize: 14),
@@ -698,7 +844,11 @@ class _SignUpPageState extends State<SignUpPage> {
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
       ),
-      validator: (v) => v!.isEmpty ? 'This field is required' : null,
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'This field is required';
+        if (label == "Email Address" && _isEmailDuplicate) return 'Email already registered';
+        return null;
+      },
     );
   }
 }

@@ -29,7 +29,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="io.supabase.agrovia"
+                    android:scheme="io.supabase.agri"
                     android:host="login-callback" />
             </intent-filter>
         </activity>

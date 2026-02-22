@@ -4,6 +4,8 @@ import 'package:country_state_city_picker/country_state_city_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:google_fonts/google_fonts.dart';
+import 'crop.dart';
+import 'farmerservice.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -552,7 +554,47 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
       ),
       drawer: _buildDrawer(),
-      body: _buildHomeContent(),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          CropPage(onUpdateSuccess: () => setState(() => _selectedIndex = 1)),
+          const FarmerServicePage(),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+          selectedItemColor: const Color(0xFF2E7D32),
+          unselectedItemColor: Colors.grey[400],
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          selectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 12),
+          unselectedLabelStyle: GoogleFonts.outfit(fontSize: 12),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.grass_rounded),
+              label: 'Crop Details',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_alt_rounded),
+              label: 'Farmer Service',
+            ),
+          ],
+        ),
+      ),
     );
   }
 

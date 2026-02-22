@@ -539,15 +539,18 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  Future<void> _checkPhoneDuplicate(String countryCode, String phoneNumber) async {
-    if (phoneNumber.isEmpty) return;
+  Future<void> _checkPhoneDuplicate(String phoneNumber) async {
+    if (phoneNumber.length < 5) { // Minimum length to avoid false positives
+      setState(() => _isPhoneDuplicate = false);
+      _formKey.currentState?.validate();
+      return;
+    }
     
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
       final check = await Supabase.instance.client
           .from('profiles')
           .select('id')
-          .eq('country_code', countryCode)
           .eq('phone_number', phoneNumber)
           .maybeSingle();
       
@@ -555,9 +558,9 @@ class _SignUpPageState extends State<SignUpPage> {
         setState(() {
           _isPhoneDuplicate = check != null;
         });
-        if (_isPhoneDuplicate) {
-          _formKey.currentState?.validate();
-        }
+        // CRITICAL: We call validate() every time to ensure the error text 
+        // appears when a duplicate is found AND disappears when the number is fixed.
+        _formKey.currentState?.validate();
       }
     });
   }
@@ -577,9 +580,8 @@ class _SignUpPageState extends State<SignUpPage> {
         setState(() {
           _isEmailDuplicate = check != null;
         });
-        if (_isEmailDuplicate) {
-          _formKey.currentState?.validate();
-        }
+        // Ensures the email error disappears instantly when the user fixes it
+        _formKey.currentState?.validate();
       }
     });
   }
@@ -749,7 +751,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             onChanged: (phone) {
                               _countryCode = phone.countryCode;
                               _phoneController.text = phone.number;
-                              _checkPhoneDuplicate(phone.countryCode, phone.number);
+                              _checkPhoneDuplicate(phone.number);
                             },
                             validator: (phone) {
                               if (phone == null || phone.number.isEmpty) {

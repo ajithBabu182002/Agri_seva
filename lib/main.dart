@@ -519,13 +519,52 @@ class _SignUpPageState extends State<SignUpPage> {
   final _passwordController = TextEditingController();
   final _addressController = TextEditingController();
   final _pinController = TextEditingController();
-  String? _selectedCountry;
-  String? _selectedState;
+  String _selectedCountry = "India";
+  final _stateController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _talukController = TextEditingController();
+  final _villageController = TextEditingController();
   String _countryCode = '+91';
   bool _isLoading = false;
   bool _isPhoneDuplicate = false;
   bool _isEmailDuplicate = false;
   Timer? _debounce;
+  
+  final List<String> _countries = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+    "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+    "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+    "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+    "Fiji", "Finland", "France",
+    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+    "Haiti", "Honduras", "Hungary",
+    "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast",
+    "Jamaica", "Japan", "Jordan",
+    "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+    "Oman",
+    "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+    "Qatar",
+    "Romania", "Russia", "Rwanda",
+    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+    "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+    "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan",
+    "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
+    "Yemen",
+    "Zambia", "Zimbabwe"
+  ];
+
+  final List<String> _indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+    "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+  ];
 
   @override
   void dispose() {
@@ -536,6 +575,10 @@ class _SignUpPageState extends State<SignUpPage> {
     _passwordController.dispose();
     _addressController.dispose();
     _pinController.dispose();
+    _stateController.dispose();
+    _districtController.dispose();
+    _talukController.dispose();
+    _villageController.dispose();
     super.dispose();
   }
 
@@ -609,7 +652,10 @@ class _SignUpPageState extends State<SignUpPage> {
           'email_id': email,
           'address': _addressController.text.trim(),
           'country': _selectedCountry,
-          'state': _selectedState,
+          'state': _stateController.text.trim(),
+          'district': _districtController.text.trim(),
+          'taluk': _talukController.text.trim(),
+          'village': _villageController.text.trim(),
           'pin_code': _pinController.text.trim(),
         },
       );
@@ -628,7 +674,10 @@ class _SignUpPageState extends State<SignUpPage> {
             'email_id': _emailController.text.trim(),
             'address': _addressController.text.trim(),
             'country': _selectedCountry,
-            'state': _selectedState,
+            'state': _stateController.text.trim(),
+            'district': _districtController.text.trim(),
+            'taluk': _talukController.text.trim(),
+            'village': _villageController.text.trim(),
             'pin_code': _pinController.text.trim(),
             'updated_at': DateTime.now().toIso8601String(),
           });
@@ -640,7 +689,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (mounted) _showSuccess();
     } on AuthException catch (e) {
+      debugPrint("Auth Error Details: ${e.message}, Code: ${e.code}, Status: ${e.statusCode}");
       String message = 'Registration error: ${e.message}';
+      if (e.statusCode == '422') {
+        message = "Invalid registration data. Please check your details (like email format or password complexity) and try again.";
+      }
       if (e.code == 'over_email_send_rate_limit') {
         message = "Too many attempts. Please wait a few minutes before trying again or check your email for a verification link.";
       }
@@ -654,6 +707,7 @@ class _SignUpPageState extends State<SignUpPage> {
         );
       }
     } catch (e) {
+      debugPrint("Unexpected Registration Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -768,41 +822,46 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 16),
                           _buildAuthField(_passwordController, "Strong Password", Icons.lock_outline_rounded, obscure: true),
                           const SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           _buildAuthField(_addressController, "Full Address", Icons.home_outlined, lines: 2),
                           const SizedBox(height: 16),
-                          FormField<String>(
-                            builder: (FormFieldState<String> state) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[50],
-                                      borderRadius: BorderRadius.circular(18),
-                                      border: Border.all(
-                                        color: Colors.grey[200]!,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: SelectState(
-                                      onCountryChanged: (v) {
-                                        setState(() {
-                                          _selectedCountry = v;
-                                        });
-                                      },
-                                      onStateChanged: (v) {
-                                        setState(() {
-                                          _selectedState = v;
-                                        });
-                                      },
-                                      onCityChanged: (v) {},
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                          
+                          // Country Dropdown
+                          DropdownButtonFormField<String>(
+                            value: _selectedCountry,
+                            style: GoogleFonts.outfit(fontSize: 15, color: Colors.black),
+                            decoration: InputDecoration(
+                              labelText: "Select Country",
+                              labelStyle: GoogleFonts.outfit(fontSize: 14),
+                              prefixIcon: const Icon(Icons.public_rounded, size: 20, color: Color(0xFF2E7D32)),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
+                            ),
+                            items: _countries.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (v) => setState(() => _selectedCountry = v!),
                           ),
+                          
+                          if (_selectedCountry == "India") ...[
+                            const SizedBox(height: 16),
+                            _buildAuthField(_stateController, "State", Icons.map_outlined, isOptional: false, 
+                              suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                                onPressed: () => _showSearchablePicker(_stateController, "Select State", _indianStates))),
+                            const SizedBox(height: 16),
+                            _buildAuthField(_districtController, "District", Icons.location_city_rounded, isOptional: false,
+                              suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                                onPressed: () => _showSearchablePicker(_districtController, "Select District", []))),
+                            const SizedBox(height: 16),
+                            _buildAuthField(_talukController, "Taluk", Icons.holiday_village_rounded, isOptional: false,
+                              suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                                onPressed: () => _showSearchablePicker(_talukController, "Select Taluk", []))),
+                            const SizedBox(height: 16),
+                            _buildAuthField(_villageController, "Village", Icons.vignette_rounded, isOptional: false,
+                              suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                                onPressed: () => _showSearchablePicker(_villageController, "Select Village", []))),
+                          ],
                           const SizedBox(height: 16),
                           _buildAuthField(_pinController, "Pin Code", Icons.pin_drop_outlined, type: TextInputType.number),
                           const SizedBox(height: 32),
@@ -824,7 +883,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildAuthField(TextEditingController controller, String label, IconData icon, {bool obscure = false, TextInputType type = TextInputType.text, int lines = 1}) {
+  Widget _buildAuthField(TextEditingController controller, String label, IconData icon, {bool obscure = false, TextInputType type = TextInputType.text, int lines = 1, bool isOptional = false, Widget? suffixIcon}) {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
@@ -837,9 +896,10 @@ class _SignUpPageState extends State<SignUpPage> {
         }
       },
       decoration: InputDecoration(
-        labelText: label,
+        labelText: label + (isOptional ? " (Optional)" : ""),
         labelStyle: GoogleFonts.outfit(fontSize: 14),
         prefixIcon: Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: Colors.grey[200]!)),
@@ -847,9 +907,69 @@ class _SignUpPageState extends State<SignUpPage> {
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF2E7D32))),
       ),
       validator: (v) {
-        if (v == null || v.isEmpty) return 'This field is required';
+        if (!isOptional && (v == null || v.isEmpty)) return 'This field is required';
         if (label == "Email Address" && _isEmailDuplicate) return 'Email already registered';
         return null;
+      },
+    );
+  }
+
+  void _showSearchablePicker(TextEditingController controller, String title, List<String> items) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String searchQuery = "";
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final filteredItems = items.where((item) => item.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+            return AlertDialog(
+              title: Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (items.isNotEmpty)
+                    TextField(
+                      onChanged: (v) => setDialogState(() => searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: "Search...",
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (items.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Text("No suggestions available.\nPlease type manually.", textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.grey)),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredItems.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(filteredItems[index], style: GoogleFonts.outfit()),
+                              onTap: () {
+                                controller.text = filteredItems[index];
+                                Navigator.pop(context);
+                                setState(() {});
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text("Close")),
+              ],
+            );
+          },
+        );
       },
     );
   }

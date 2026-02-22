@@ -18,13 +18,53 @@ class _HomePageState extends State<HomePage> {
   final _addressController = TextEditingController();
   final _pinController = TextEditingController();
   
-  String? _selectedCountry;
-  String? _selectedState;
+  final _countryController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _talukController = TextEditingController();
+  final _villageController = TextEditingController();
+  
   String? _avatarUrl;
   String _countryCode = '';
   bool _isLoading = true;
   bool _isSaving = false;
   int _selectedIndex = 0;
+
+  final _countries = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+    "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+    "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+    "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+    "Fiji", "Finland", "France",
+    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+    "Haiti", "Honduras", "Hungary",
+    "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast",
+    "Jamaica", "Japan", "Jordan",
+    "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+    "Oman",
+    "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+    "Qatar",
+    "Romania", "Russia", "Rwanda",
+    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+    "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+    "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan",
+    "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
+    "Yemen",
+    "Zambia", "Zimbabwe"
+  ];
+
+  final List<String> _indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+    "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+  ];
 
   @override
   void initState() {
@@ -49,8 +89,11 @@ class _HomePageState extends State<HomePage> {
         _phoneController.text = data['phone_number'] ?? '';
         _addressController.text = data['address'] ?? '';
         _pinController.text = data['pin_code'] ?? '';
-        _selectedCountry = data['country'];
-        _selectedState = data['state'];
+        _countryController.text = data['country'] ?? '';
+        _stateController.text = data['state'] ?? '';
+        _districtController.text = data['district'] ?? '';
+        _talukController.text = data['taluk'] ?? '';
+        _villageController.text = data['village'] ?? '';
         _avatarUrl = data['avatar_url'];
         _isLoading = false;
       });
@@ -170,6 +213,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _updateProfile() async {
+    // Validation for India
+    if (_countryController.text == "India") {
+      if (_stateController.text.trim().isEmpty || 
+          _districtController.text.trim().isEmpty || 
+          _talukController.text.trim().isEmpty || 
+          _villageController.text.trim().isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('State, District, Taluk, and Village are mandatory for India', style: GoogleFonts.outfit()),
+              backgroundColor: Colors.orange[800],
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     setState(() => _isSaving = true);
     final user = Supabase.instance.client.auth.currentUser;
 
@@ -179,8 +241,11 @@ class _HomePageState extends State<HomePage> {
         'country_code': _countryCode,
         'phone_number': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
-        'country': _selectedCountry,
-        'state': _selectedState,
+        'country': _countryController.text.trim(),
+        'state': _stateController.text.trim(),
+        'district': _districtController.text.trim(),
+        'taluk': _talukController.text.trim(),
+        'village': _villageController.text.trim(),
         'pin_code': _pinController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', user!.id);
@@ -299,28 +364,46 @@ class _HomePageState extends State<HomePage> {
                     Text("Edit Profile", style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
                     Text("Update your personal information", style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[500])),
                     const SizedBox(height: 30),
-
                     // Input Form
                     _buildEditField(_nameController, "Full Name", Icons.person_outline_rounded),
                     _buildEditField(_phoneController, "Phone Number", Icons.phone_android_rounded, type: TextInputType.phone),
+                    _buildEditField(_addressController, "Home Address", Icons.location_on_outlined),
                     
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey[200]!),
+                    // Country Selection (Option only)
+                    DropdownButtonFormField<String>(
+                      value: _countryController.text.isEmpty ? "India" : _countryController.text,
+                      style: GoogleFonts.outfit(fontSize: 15, color: Colors.black),
+                      decoration: InputDecoration(
+                        labelText: "Select Country",
+                        labelStyle: GoogleFonts.outfit(fontSize: 14),
+                        prefixIcon: const Icon(Icons.public_rounded, size: 20, color: Color(0xFF2E7D32)),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey[200]!)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey[200]!)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
                       ),
-                      child: SelectState(
-                        onCountryChanged: (v) => setDialogState(() => _selectedCountry = v),
-                        onStateChanged: (v) => setDialogState(() => _selectedState = v),
-                        onCityChanged: (v) {},
-                      ),
+                      items: _countries.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      onChanged: (v) => setDialogState(() => _countryController.text = v!),
                     ),
                     const SizedBox(height: 16),
                     
-                    _buildEditField(_addressController, "Home Address", Icons.location_on_outlined),
+                    if (_countryController.text == "India" || _countryController.text.isEmpty) ...[
+                      _buildEditField(_stateController, "State", Icons.map_outlined, 
+                        suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                          onPressed: () => _showSearchablePickerHome(_stateController, "Select State", _indianStates, setDialogState))),
+                      _buildEditField(_districtController, "District", Icons.location_city_outlined,
+                        suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                          onPressed: () => _showSearchablePickerHome(_districtController, "Select District", [], setDialogState))),
+                      _buildEditField(_talukController, "Taluk", Icons.holiday_village_outlined,
+                        suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                          onPressed: () => _showSearchablePickerHome(_talukController, "Select Taluk", [], setDialogState))),
+                      _buildEditField(_villageController, "Village", Icons.vignette_rounded,
+                        suffixIcon: IconButton(icon: const Icon(Icons.list_rounded, color: Color(0xFF2E7D32)), 
+                          onPressed: () => _showSearchablePickerHome(_villageController, "Select Village", [], setDialogState))),
+                    ],
+                    
                     _buildEditField(_pinController, "Pin Code", Icons.pin_drop_outlined, type: TextInputType.number),
                     
                     const SizedBox(height: 24),
@@ -364,7 +447,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEditField(TextEditingController controller, String label, IconData icon, {TextInputType type = TextInputType.text}) {
+  Widget _buildEditField(TextEditingController controller, String label, IconData icon, {TextInputType type = TextInputType.text, Widget? suffixIcon}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -380,6 +463,7 @@ class _HomePageState extends State<HomePage> {
             style: GoogleFonts.outfit(fontSize: 15),
             decoration: InputDecoration(
               prefixIcon: Icon(icon, color: const Color(0xFF2E7D32), size: 20),
+              suffixIcon: suffixIcon,
               filled: true,
               fillColor: Colors.grey[50],
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -390,6 +474,66 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showSearchablePickerHome(TextEditingController controller, String title, List<String> items, StateSetter setDialogState) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String searchQuery = "";
+        return StatefulBuilder(
+          builder: (context, setInternalState) {
+            final filteredItems = items.where((item) => item.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+            return AlertDialog(
+              title: Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (items.isNotEmpty)
+                    TextField(
+                      onChanged: (v) => setInternalState(() => searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: "Search...",
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (items.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Text("No suggestions available.\nPlease type manually.", textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.grey)),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: filteredItems.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(filteredItems[index], style: GoogleFonts.outfit()),
+                              onTap: () {
+                                controller.text = filteredItems[index];
+                                Navigator.pop(context);
+                                setDialogState(() {});
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text("Close")),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

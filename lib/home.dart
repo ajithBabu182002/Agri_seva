@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:google_fonts/google_fonts.dart';
 import 'crop.dart';
 import 'farmerservice.dart';
+import 'labour.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   String _countryCode = '';
   bool _isLoading = true;
   bool _isSaving = false;
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
 
   final _countries = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -605,9 +606,10 @@ class _HomePageState extends State<HomePage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
+          LabourPage(filterCriteria: filterCriteria),
           CropPage(
             filterCriteria: filterCriteria,
-            onUpdateSuccess: () => setState(() => _selectedIndex = 1)
+            onUpdateSuccess: () => setState(() => _selectedIndex = 2)
           ),
           FarmerServicePage(filterCriteria: filterCriteria),
         ],
@@ -635,6 +637,10 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Colors.white,
           elevation: 0,
           items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.work_rounded),
+              label: 'Labour',
+            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.grass_rounded),
               label: 'Crop Details',
@@ -802,7 +808,7 @@ class _HomePageState extends State<HomePage> {
                 value: _filterField,
                 hint: "Choose Field",
                 icon: Icons.category_rounded,
-                items: ['All', 'Crop Details', 'Farmer Service'],
+                items: ['All', 'Crop Details', 'Farmer Service', 'Labour'],
                 onChanged: (v) => setState(() => _filterField = v!),
               ),
               
@@ -810,9 +816,9 @@ class _HomePageState extends State<HomePage> {
               
               Expanded(
                 child: Opacity(
-                  opacity: _filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service' ? 1.0 : 0.5,
+                  opacity: _filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service' || _filterField == 'Labour' ? 1.0 : 0.5,
                   child: AbsorbPointer(
-                    absorbing: !(_filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service'),
+                    absorbing: !(_filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service' || _filterField == 'Labour'),
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

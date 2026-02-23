@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'crop.dart';
 import 'farmerservice.dart';
 import 'labour.dart';
+import 'sub_homedetailsicon.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   String _countryCode = '';
   bool _isLoading = true;
   bool _isSaving = false;
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
 
   final _countries = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -606,10 +607,11 @@ class _HomePageState extends State<HomePage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
+          SubHomeDetailsIconPage(filterCriteria: filterCriteria),
           LabourPage(filterCriteria: filterCriteria),
           CropPage(
             filterCriteria: filterCriteria,
-            onUpdateSuccess: () => setState(() => _selectedIndex = 2)
+            onUpdateSuccess: () => setState(() => _selectedIndex = 3)
           ),
           FarmerServicePage(filterCriteria: filterCriteria),
         ],
@@ -637,6 +639,10 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Colors.white,
           elevation: 0,
           items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.work_rounded),
               label: 'Labour',

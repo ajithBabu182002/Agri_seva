@@ -5,8 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 
 class CropPage extends StatefulWidget {
+  final Map<String, dynamic> filterCriteria;
   final VoidCallback? onUpdateSuccess;
-  const CropPage({super.key, this.onUpdateSuccess});
+  const CropPage({super.key, required this.filterCriteria, this.onUpdateSuccess});
 
   @override
   State<CropPage> createState() => _CropPageState();
@@ -24,19 +25,24 @@ class _CropPageState extends State<CropPage> {
   final List<Uint8List?> _cropImageBytes = [];
   final List<String?> _cropImageUrls = []; // Track existing image URLs
   
-  // For searching/results
-  final TextEditingController _searchCountry = TextEditingController();
-  final TextEditingController _searchState = TextEditingController();
-  final TextEditingController _searchDistrict = TextEditingController();
-  final TextEditingController _searchTaluk = TextEditingController();
-  final TextEditingController _searchVillage = TextEditingController();
   List<Map<String, dynamic>> _fetchedFarmers = [];
   bool _isSearchLoading = false;
+
+  late final Stream<List<Map<String, dynamic>>> _farmersStream;
 
   @override
   void initState() {
     super.initState();
     _fetchProfile();
+    _initFarmersStream();
+  }
+
+  void _initFarmersStream() {
+    final user = Supabase.instance.client.auth.currentUser;
+    _farmersStream = Supabase.instance.client
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .map((data) => data.where((f) => f['id'] != user?.id).toList());
   }
 
   Future<void> _fetchProfile() async {
@@ -131,33 +137,35 @@ class _CropPageState extends State<CropPage> {
     }
   }
 
-  Future<void> _searchFarmers() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+  List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> farmers) {
+    final fc = widget.filterCriteria;
     
-    setState(() => _isSearchLoading = true);
-    try {
-      var query = Supabase.instance.client
-          .from('profiles')
-          .select('*, crop_data(*)')
-          .neq('id', user.id); // Exclude self
-          
-      if (_searchCountry.text.isNotEmpty) query = query.eq('country', _searchCountry.text.trim());
-      if (_searchState.text.isNotEmpty) query = query.eq('state', _searchState.text.trim());
-      if (_searchDistrict.text.isNotEmpty) query = query.eq('district', _searchDistrict.text.trim());
-      if (_searchTaluk.text.isNotEmpty) query = query.eq('taluk', _searchTaluk.text.trim());
-      if (_searchVillage.text.isNotEmpty) query = query.eq('village', _searchVillage.text.trim());
-
-      final data = await query;
-      final filtered = (data as List).where((f) => (f['crop_data'] as List).isNotEmpty).toList();
-      setState(() {
-        _fetchedFarmers = List<Map<String, dynamic>>.from(filtered);
-        _isSearchLoading = false;
-      });
-    } catch (e) {
-      debugPrint("Search error: $e");
-      setState(() => _isSearchLoading = false);
+    // Only apply filters if field is 'All' or 'Crop Details'
+    if (fc['field'] != 'All' && fc['field'] != 'Crop Details') {
+      return farmers;
     }
+
+    return farmers.where((f) {
+      bool matches = true;
+      if (fc['country'] != null && fc['country']!.isNotEmpty) {
+        matches &= (f['country'] == fc['country']);
+      }
+      if (fc['country'] == 'India') {
+        if (fc['state'] != null && fc['state']!.isNotEmpty) {
+          matches &= (f['state'] == fc['state']);
+        }
+        if (fc['district'] != null && fc['district']!.isNotEmpty) {
+          matches &= (f['district'] == fc['district']);
+        }
+        if (fc['taluk'] != null && fc['taluk']!.isNotEmpty) {
+          matches &= (f['taluk'] == fc['taluk']);
+        }
+        if (fc['village'] != null && fc['village']!.isNotEmpty) {
+          matches &= (f['village'] == fc['village']);
+        }
+      }
+      return matches;
+    }).toList();
   }
 
   Future<void> _confirmDeleteEntry(int index) async {
@@ -349,17 +357,6 @@ class _CropPageState extends State<CropPage> {
         ],
       ),
     );
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _searchCountry.clear();
-      _searchState.clear();
-      _searchDistrict.clear();
-      _searchTaluk.clear();
-      _searchVillage.clear();
-      _fetchedFarmers.clear();
-    });
   }
 
   @override
@@ -719,108 +716,53 @@ class _CropPageState extends State<CropPage> {
   }
 
   Widget _buildResultsView() {
-    return SingleChildScrollView(
-      key: const ValueKey('results'),
-      child: Column(
-        children: [
-          _buildFarmerCard(_profile!, isMine: true),
-          _buildFilterSection(),
-          if (_isSearchLoading) const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Color(0xFF10B981)))
-          else ..._fetchedFarmers.map((f) => _buildFarmerCard(f)),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _farmersStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF10B981)));
+        }
+        
+        final allFarmers = snapshot.data ?? [];
+        final filteredFarmers = _applyFilters(allFarmers);
 
-  Widget _buildFilterSection() {
-    bool isEnterDisabled = _searchCountry.text.isEmpty && _searchState.text.isEmpty && _searchDistrict.text.isEmpty && _searchTaluk.text.isEmpty && _searchVillage.text.isEmpty;
-    return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(36),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.08), blurRadius: 40, offset: const Offset(0, 20)),
-        ],
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return SingleChildScrollView(
+          key: const ValueKey('results'),
+          child: Column(
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.search_rounded, color: Color(0xFF10B981), size: 22),
-                  const SizedBox(width: 12),
-                  Text("Find Farmers", style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B))),
-                ],
+              _buildFarmerCard(_profile!, isMine: true),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Divider(color: Color(0xFFF1F5F9)),
               ),
-              if (!isEnterDisabled)
-                GestureDetector(
-                  onTap: _clearFilters,
-                  child: Text("Clear All", style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red[400])),
-                ),
+              if (filteredFarmers.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[300]),
+                      const SizedBox(height: 16),
+                      Text("No farmers found matching filters", style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 16)),
+                    ],
+                  ),
+                )
+              else
+                ...filteredFarmers.map((f) => _buildFarmerCard(f)),
+              const SizedBox(height: 40),
             ],
           ),
-          const SizedBox(height: 28),
-          _buildFilterInput(_searchCountry, "Country", Icons.language_rounded),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(child: _buildFilterInput(_searchState, "State", Icons.map_rounded)), 
-            const SizedBox(width: 14), 
-            Expanded(child: _buildFilterInput(_searchDistrict, "District", Icons.account_balance_rounded))
-          ]),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(child: _buildFilterInput(_searchTaluk, "Taluk", Icons.location_city_rounded)), 
-            const SizedBox(width: 14), 
-            Expanded(child: _buildFilterInput(_searchVillage, "Village", Icons.grass_rounded))
-          ]),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isEnterDisabled ? null : _searchFarmers,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF064E3B), 
-                foregroundColor: Colors.white, 
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                elevation: 8,
-                shadowColor: const Color(0xFF064E3B).withOpacity(0.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
-              ),
-              child: Text("Search Profiles", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildFilterInput(TextEditingController ctrl, String hint, IconData icon) {
-    return TextField(
-      controller: ctrl,
-      onChanged: (_) => setState(() {}),
-      style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF064E3B)),
-      decoration: InputDecoration(
-        hintText: hint, 
-        hintStyle: GoogleFonts.outfit(color: Colors.grey[400], fontWeight: FontWeight.w500),
-        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF10B981).withOpacity(0.8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18), 
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: Color(0xFF10B981), width: 2)),
-      ),
-    );
-  }
 
   Widget _buildFarmerCard(Map<String, dynamic> data, {bool isMine = false}) {
     bool isAvailable = data['is_available'] ?? true;
+    
+    // Check if crops are already fetched (isMine case)
+    List crops = data['crop_data'] as List? ?? [];
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
@@ -828,7 +770,6 @@ class _CropPageState extends State<CropPage> {
         borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(color: const Color(0xFF064E3B).withOpacity(0.06), blurRadius: 40, offset: const Offset(0, 15)),
-          BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 2, spreadRadius: 0),
         ],
         border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
@@ -892,7 +833,19 @@ class _CropPageState extends State<CropPage> {
                   const SizedBox(height: 24),
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
                   const SizedBox(height: 20),
-                  _buildCropPreviewList(data['crop_data'] as List? ?? [], isMine),
+                  if (isMine)
+                    _buildCropPreviewList(crops, true)
+                  else
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: Supabase.instance.client.from('crop_data').select().eq('profile_id', data['id']),
+                      builder: (context, snapshot) {
+                        final fetchedCrops = snapshot.data ?? [];
+                        if (fetchedCrops.isEmpty && snapshot.connectionState != ConnectionState.waiting) {
+                           return Text("No crops listed", style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[400]));
+                        }
+                        return _buildCropPreviewList(fetchedCrops, false);
+                      },
+                    ),
                 ],
               ),
             ),

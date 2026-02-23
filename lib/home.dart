@@ -68,10 +68,34 @@ class _HomePageState extends State<HomePage> {
     "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
   ];
 
+  // Search Filter State
+  String _filterField = 'All';
+  String _filterCountry = '';
+  String _filterState = '';
+  String _filterDistrict = '';
+  String _filterTaluk = '';
+  String _filterVillage = '';
+
   @override
   void initState() {
     super.initState();
     _fetchProfile();
+  }
+
+  void _applyFilter() {
+    setState(() {}); // Trigger rebuild to pass new filters down
+    Navigator.pop(context); // Close search drawer
+  }
+
+  void _resetFilter() {
+    setState(() {
+      _filterField = 'All';
+      _filterCountry = '';
+      _filterState = '';
+      _filterDistrict = '';
+      _filterTaluk = '';
+      _filterVillage = '';
+    });
   }
 
   Future<void> _fetchProfile() async {
@@ -543,6 +567,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.green)));
 
+    final filterCriteria = {
+      'field': _filterField,
+      'country': _filterCountry,
+      'state': _filterState,
+      'district': _filterDistrict,
+      'taluk': _filterTaluk,
+      'village': _filterVillage,
+    };
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -550,15 +583,33 @@ class _HomePageState extends State<HomePage> {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.search_rounded, color: Color(0xFF1B5E20), size: 28),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: Text("Agrovia Global", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, letterSpacing: 1, color: const Color(0xFF1B5E20))),
         centerTitle: true,
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.black),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ),
+        ],
       ),
-      drawer: _buildDrawer(),
+      drawer: _buildSearchDrawer(),
+      endDrawer: _buildDrawer(),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          CropPage(onUpdateSuccess: () => setState(() => _selectedIndex = 1)),
-          const FarmerServicePage(),
+          CropPage(
+            filterCriteria: filterCriteria,
+            onUpdateSuccess: () => setState(() => _selectedIndex = 1)
+          ),
+          FarmerServicePage(filterCriteria: filterCriteria),
         ],
       ),
       bottomNavigationBar: Container(
@@ -716,6 +767,262 @@ class _HomePageState extends State<HomePage> {
           _drawerItem(Icons.delete_forever_outlined, "Delete Account", _deleteAccount, color: Colors.red),
         ],
       ),
+    );
+  }
+
+  Widget _buildSearchDrawer() {
+    bool isIndia = _filterCountry == 'India';
+    return Drawer(
+      backgroundColor: Colors.white,
+      width: MediaQuery.of(context).size.width * 0.85,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                       Text("Search & Filter", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
+                       Text("Find exactly what you need", style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[500])),
+                     ],
+                   ),
+                   IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded, color: Colors.grey)),
+                ],
+              ),
+              const SizedBox(height: 32),
+              
+              Text("Select Field", style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+              const SizedBox(height: 12),
+              _buildFilterDropdown(
+                value: _filterField,
+                hint: "Choose Field",
+                icon: Icons.category_rounded,
+                items: ['All', 'Crop Details', 'Farmer Service'],
+                onChanged: (v) => setState(() => _filterField = v!),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              Expanded(
+                child: Opacity(
+                  opacity: _filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service' ? 1.0 : 0.5,
+                  child: AbsorbPointer(
+                    absorbing: !(_filterField == 'All' || _filterField == 'Crop Details' || _filterField == 'Farmer Service'),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Location Filters", style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                          const SizedBox(height: 16),
+                          
+                          _buildFilterItem(
+                            label: "Country",
+                            value: _filterCountry,
+                            icon: Icons.public_rounded,
+                            onTap: () => _showSearchablePickerFilter("Select Country", _countries, (v) => setState(() => _filterCountry = v)),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          Opacity(
+                            opacity: isIndia ? 1.0 : 0.4,
+                            child: AbsorbPointer(
+                              absorbing: !isIndia,
+                              child: Column(
+                                children: [
+                                  _buildFilterItem(
+                                    label: "State",
+                                    value: _filterState,
+                                    icon: Icons.map_rounded,
+                                    onTap: () => _showSearchablePickerFilter("Select State", _indianStates, (v) => setState(() => _filterState = v)),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildFilterTextField("District", Icons.location_city_rounded, (v) => setState(() => _filterDistrict = v), initial: _filterDistrict),
+                                  const SizedBox(height: 16),
+                                  _buildFilterTextField("Taluk", Icons.holiday_village_rounded, (v) => setState(() => _filterTaluk = v), initial: _filterTaluk),
+                                  const SizedBox(height: 16),
+                                  _buildFilterTextField("Village", Icons.grass_rounded, (v) => setState(() => _filterVillage = v), initial: _filterVillage),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _resetFilter,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        side: BorderSide(color: Colors.red[100]!),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: Text("Clear", style: GoogleFonts.outfit(color: Colors.red, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _applyFilter,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1B5E20),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        elevation: 4,
+                        shadowColor: const Color(0xFF1B5E20).withOpacity(0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: Text("Apply Filters", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterDropdown({required String value, required String hint, required IconData icon, required List<String> items, required ValueChanged<String?> onChanged}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButtonFormField<String>(
+          value: value == '' ? null : value,
+          hint: Text(hint, style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[400])),
+          icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF1B5E20)),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            prefixIcon: Icon(icon, size: 20, color: const Color(0xFF1B5E20)),
+            prefixIconConstraints: const BoxConstraints(minWidth: 40),
+          ),
+          items: items.map((f) => DropdownMenuItem(value: f, child: Text(f, style: GoogleFonts.outfit(fontSize: 14)))).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterItem({required String label, required String value, required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: const Color(0xFF1B5E20)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+                  Text(value.isEmpty ? "Select $label" : value, 
+                    style: GoogleFonts.outfit(fontSize: 14, color: value.isEmpty ? Colors.grey[400] : Colors.black, fontWeight: value.isEmpty ? FontWeight.normal : FontWeight.w600)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTextField(String label, IconData icon, ValueChanged<String> onChanged, {String initial = ""}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: TextField(
+        onChanged: onChanged,
+        controller: TextEditingController(text: initial)..selection = TextSelection.fromPosition(TextPosition(offset: initial.length)),
+        style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[500]),
+          prefixIcon: Icon(icon, size: 20, color: const Color(0xFF1B5E20)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+    );
+  }
+
+  void _showSearchablePickerFilter(String title, List<String> items, ValueChanged<String> onSelected) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String searchQuery = "";
+        return StatefulBuilder(
+          builder: (context, setInternalState) {
+            final filteredItems = items.where((item) => item.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      onChanged: (v) => setInternalState(() => searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: "Search...",
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(filteredItems[index], style: GoogleFonts.outfit()),
+                            onTap: () {
+                              onSelected(filteredItems[index]);
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

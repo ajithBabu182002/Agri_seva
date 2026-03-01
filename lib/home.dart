@@ -12,6 +12,7 @@ import 'solar_drying.dart';
 import 'micro_relay.dart';
 import 'village_soil_pulse.dart';
 import 'border_breaker.dart';
+import 'live_tracking.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -622,6 +623,7 @@ class _HomePageState extends State<HomePage> {
           MicroRelayPage(filterCriteria: filterCriteria),
           SoilPulsePage(filterCriteria: filterCriteria),
           BorderBreakerPage(filterCriteria: filterCriteria),
+          LiveTrackingPage(filterCriteria: filterCriteria),
         ],
       ),
       bottomNavigationBar: Container(
@@ -649,6 +651,7 @@ class _HomePageState extends State<HomePage> {
               _navItem(5, Icons.local_shipping_rounded, "Micro-Relay"),
               _navItem(6, Icons.analytics_rounded, "Soil Pulse"),
               _navItem(7, Icons.public_rounded, "Global Export"),
+              _navItem(8, Icons.explore_rounded, "Maps"),
             ],
           ),
         ),

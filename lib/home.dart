@@ -668,7 +668,11 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/logo.png', height: 100),
+          Image.asset(
+            'assets/logo.png', 
+            height: 120, 
+            fit: BoxFit.contain,
+          ),
           const SizedBox(height: 16),
           Text(
             "Welcome to Agrovia Global",

@@ -8,6 +8,7 @@ import 'crop.dart';
 import 'farmerservice.dart';
 import 'labour.dart';
 import 'sub_homedetailsicon.dart';
+import 'solar_drying.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -614,6 +615,7 @@ class _HomePageState extends State<HomePage> {
             onUpdateSuccess: () => setState(() => _selectedIndex = 3)
           ),
           FarmerServicePage(filterCriteria: filterCriteria),
+          SolarDryingPage(filterCriteria: filterCriteria),
         ],
       ),
       bottomNavigationBar: Container(
@@ -654,6 +656,10 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.people_alt_rounded),
               label: 'Farmer Service',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.wb_sunny_rounded),
+              label: 'Solar Drying',
             ),
           ],
         ),

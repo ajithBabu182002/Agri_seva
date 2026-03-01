@@ -3,6 +3,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CropPage extends StatefulWidget {
   final Map<String, dynamic> filterCriteria;
@@ -19,9 +26,12 @@ class _CropPageState extends State<CropPage> {
   CropViewState _viewState = CropViewState.initial;
   bool _isLoading = true;
   Map<String, dynamic>? _profile;
+  final ScreenshotController _screenshotController = ScreenshotController();
   
   // For adding/editing crops
   final List<TextEditingController> _cropNameControllers = [];
+  final List<TextEditingController> _harvestDateControllers = [];
+  final List<String> _qualitySelections = [];
   final List<Uint8List?> _cropImageBytes = [];
   final List<String?> _cropImageUrls = []; // Track existing image URLs
   
@@ -71,9 +81,11 @@ class _CropPageState extends State<CropPage> {
     }
   }
 
-  void _addCropEntry({String? name, String? url}) {
+  void _addCropEntry({String? name, String? url, String? harvestDate, String? quality}) {
     setState(() {
       _cropNameControllers.insert(0, TextEditingController(text: name));
+      _harvestDateControllers.insert(0, TextEditingController(text: harvestDate ?? DateFormat('dd-MM-yyyy').format(DateTime.now())));
+      _qualitySelections.insert(0, quality ?? 'Organic');
       _cropImageBytes.insert(0, null);
       _cropImageUrls.insert(0, url);
     });
@@ -82,6 +94,8 @@ class _CropPageState extends State<CropPage> {
   void _removeCropEntry(int index) {
     setState(() {
       _cropNameControllers.removeAt(index);
+      _harvestDateControllers.removeAt(index);
+      _qualitySelections.removeAt(index);
       _cropImageBytes.removeAt(index);
       _cropImageUrls.removeAt(index);
     });
@@ -119,6 +133,8 @@ class _CropPageState extends State<CropPage> {
           'profile_id': user!.id,
           'crop_name': _cropNameControllers[i].text.trim(),
           'crop_image_url': finalImageUrl,
+          'harvest_date': _harvestDateControllers[i].text,
+          'quality': _qualitySelections[i],
         });
       }
       
@@ -266,9 +282,10 @@ class _CropPageState extends State<CropPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(crop['crop_name'] ?? "Crop Details", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(crop['crop_name'] ?? "Crop Details", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: const Color(0xFF1B5E20))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (crop['crop_image_url'] != null)
               ClipRRect(
@@ -277,10 +294,13 @@ class _CropPageState extends State<CropPage> {
               )
             else
               Container(
-                height: 100, width: double.infinity,
+                height: 140, width: double.infinity,
                 decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(15)),
-                child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 40),
+                child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 60),
               ),
+            const SizedBox(height: 16),
+            _infoRow(Icons.calendar_month_rounded, "Harvest Date", crop['harvest_date'] ?? "Not set"),
+            _infoRow(Icons.verified_rounded, "Quality", crop['quality'] ?? "Regular"),
           ],
         ),
         actions: [
@@ -288,6 +308,223 @@ class _CropPageState extends State<CropPage> {
         ],
       ),
     );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF10B981)),
+          const SizedBox(width: 8),
+          Text("$label: ", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.grey[600], fontSize: 13)),
+          Text(value, style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: Colors.black87, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  void _showAgroQR(Map<String, dynamic> crop, Map<String, dynamic> farmer) {
+    final String qrData = "Agrovia Global Certified\n"
+        "Farmer: ${farmer['full_name']}\n"
+        "Origin: ${farmer['village']}, ${farmer['district']}\n"
+        "Crop: ${crop['crop_name']}\n"
+        "Quality: ${crop['quality'] ?? 'Organic'}";
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // The shareable certificate part
+              Screenshot(
+                controller: _screenshotController,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Premium Header Gradient
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const Icon(Icons.verified_user_rounded, color: Colors.white, size: 40),
+                              const SizedBox(height: 8),
+                              Text(
+                                "AGROVIA GLOBAL",
+                                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 2),
+                              ),
+                              Text(
+                                "DIGITAL BIRTH CERTIFICATE",
+                                style: GoogleFonts.outfit(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      
+                      Padding(
+                        padding: const EdgeInsets.all(30),
+                        child: Column(
+                          children: [
+                            // The QR Code
+                            Container(
+                              padding: const EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
+                              ),
+                              child: QrImageView(
+                                data: qrData,
+                                version: QrVersions.auto,
+                                size: 180.0,
+                                eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.circle, color: Color(0xFF1B5E20)),
+                                dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle, color: Color(0xFF2E7D32)),
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 25),
+                            
+                            // Product Title
+                            Text(
+                              crop['crop_name']?.toUpperCase() ?? "HARVEST",
+                              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: const Color(0xFF064E3B)),
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
+                            // Data Grid
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: Column(
+                                children: [
+                                  _certificateFeature(Icons.person_rounded, "Farmer Name", farmer['full_name']),
+                                  const Divider(height: 20, color: Color(0xFFE2E8F0)),
+                                  _certificateFeature(Icons.location_on_rounded, "Origin Village", farmer['village']),
+                                  const Divider(height: 20, color: Color(0xFFE2E8F0)),
+                                  _certificateFeature(Icons.calendar_month_rounded, "Harvest Date", crop['harvest_date']),
+                                  const Divider(height: 20, color: Color(0xFFE2E8F0)),
+                                  _certificateFeature(Icons.workspace_premium_rounded, "Quality Seal", crop['quality']),
+                                ],
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 20),
+                            
+                            Text(
+                              "Certified by Agrovia Trust Network",
+                              style: GoogleFonts.outfit(fontSize: 10, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Floating Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _actionBtn(Icons.close_rounded, "Close", Colors.white.withOpacity(0.2), () => Navigator.pop(context)),
+                  const SizedBox(width: 15),
+                  _actionBtn(Icons.share_rounded, "Share Certificate", const Color(0xFF10B981), () => _handleShare(crop['crop_name'] ?? "Harvest")),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(100), border: Border.all(color: Colors.white24)),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(label, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _certificateFeature(IconData icon, String label, String? value) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF10B981)),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: GoogleFonts.outfit(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+            Text(value ?? "-", style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A))),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleShare(String cropName) async {
+    try {
+      if (kIsWeb) {
+        // Web doesn't support file sharing the same way, we provide a snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sharing screenshot is not supported on Web. Use a mobile device."))
+        );
+        return;
+      }
+
+      final uint8list = await _screenshotController.capture();
+      if (uint8list != null) {
+        final tempDir = await getTemporaryDirectory();
+        final file = await File('${tempDir.path}/agro_certificate.png').create();
+        await file.writeAsBytes(uint8list);
+
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: 'Check out my certified $cropName harvest on Agrovia Global! 🌾',
+        );
+      }
+    } catch (e) {
+      debugPrint("Sharing error: $e");
+    }
   }
 
   void _showProfileDetails(Map<String, dynamic> data) {
@@ -304,7 +541,12 @@ class _CropPageState extends State<CropPage> {
         if (crops.isNotEmpty) {
           // Reflect existing crops
           for (var crop in crops.reversed) {
-            _addCropEntry(name: crop['crop_name'], url: crop['crop_image_url']);
+            _addCropEntry(
+              name: crop['crop_name'], 
+              url: crop['crop_image_url'],
+              harvestDate: crop['harvest_date'],
+              quality: crop['quality']
+            );
           }
         } else {
           _addCropEntry();
@@ -685,6 +927,53 @@ class _CropPageState extends State<CropPage> {
               ),
             ],
           ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _harvestDateControllers[index],
+                  readOnly: true,
+                  onTap: () async {
+                    DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                      builder: (context, child) => Theme(
+                        data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: Color(0xFF1B5E20))),
+                        child: child!,
+                      ),
+                    );
+                    if (picked != null) {
+                      _harvestDateControllers[index].text = DateFormat('dd-MM-yyyy').format(picked);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Harvest Date",
+                    prefixIcon: const Icon(Icons.calendar_month, color: Color(0xFF10B981)),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _qualitySelections[index],
+                  items: ['Organic', 'Natural', 'Regular'].map((q) => DropdownMenuItem(value: q, child: Text(q, style: GoogleFonts.outfit(fontSize: 13)))).toList(),
+                  onChanged: (v) => setState(() => _qualitySelections[index] = v!),
+                  decoration: InputDecoration(
+                    labelText: "Quality",
+                    prefixIcon: const Icon(Icons.verified_rounded, color: Color(0xFF10B981)),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           GestureDetector(
             onTap: () => _pickCropImage(index),
@@ -834,7 +1123,7 @@ class _CropPageState extends State<CropPage> {
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
                   const SizedBox(height: 20),
                   if (isMine)
-                    _buildCropPreviewList(crops, true)
+                    _buildCropPreviewList(crops, true, data)
                   else
                     FutureBuilder<List<Map<String, dynamic>>>(
                       future: Supabase.instance.client.from('crop_data').select().eq('profile_id', data['id']),
@@ -843,7 +1132,7 @@ class _CropPageState extends State<CropPage> {
                         if (fetchedCrops.isEmpty && snapshot.connectionState != ConnectionState.waiting) {
                            return Text("No crops listed", style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey[400]));
                         }
-                        return _buildCropPreviewList(fetchedCrops, false);
+                        return _buildCropPreviewList(fetchedCrops, false, data);
                       },
                     ),
                 ],
@@ -855,7 +1144,7 @@ class _CropPageState extends State<CropPage> {
     );
   }
 
-  Widget _buildCropPreviewList(List crops, bool isMine) {
+  Widget _buildCropPreviewList(List crops, bool isMine, Map<String, dynamic> farmer) {
     if (crops.isEmpty) return const SizedBox.shrink();
     return SizedBox(
       height: 110,
@@ -914,6 +1203,17 @@ class _CropPageState extends State<CropPage> {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(8)),
                           child: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF2E7D32)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => _showAgroQR(crop, farmer),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.qr_code_2_rounded, size: 16, color: Colors.orange),
                         ),
                       ),
                     ),

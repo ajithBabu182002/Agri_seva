@@ -174,75 +174,309 @@ class _SubHomeDetailsIconPageState extends State<SubHomeDetailsIconPage> {
   }
 
   Widget _buildDealCard(Map<String, dynamic> deal) {
+    bool isMine = deal['profile_id'] == _userProfile?['id'];
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
-        border: Border.all(color: Colors.grey[100]!),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 15, offset: const Offset(0, 8)),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              child: deal['image_url'] != null
-                  ? Image.network(deal['image_url'], fit: BoxFit.cover, width: double.infinity)
-                  : Container(color: Colors.grey[200], child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  deal['image_url'] != null
+                      ? Image.network(deal['image_url'], fit: BoxFit.cover)
+                      : Container(color: const Color(0xFFF8FAFC), child: const Icon(Icons.image_not_supported_rounded, color: Color(0xFFCBD5E1), size: 40)),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: isMine
+                        ? GestureDetector(
+                            onTap: () => _showDeleteConfirmation(deal['id']),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(color: Colors.red.withOpacity(0.9), shape: BoxShape.circle),
+                              child: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.white),
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 14),
+                                const SizedBox(width: 4),
+                                Text("New", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
+                              ],
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Stack(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(deal['item_name'] ?? "", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    Text("₹${deal['price']}", style: GoogleFonts.outfit(color: const Color(0xFF1B5E20), fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.person_rounded, size: 12, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Expanded(child: Text(deal['farmer_name'] ?? "", style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      ],
+                    Expanded(
+                      child: Text(
+                        deal['item_name'] ?? "", 
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 15, color: const Color(0xFF064E3B)), 
+                        maxLines: 1, 
+                        overflow: TextOverflow.ellipsis
+                      ),
                     ),
-                    Row(
-                      children: [
-                        const Icon(Icons.phone_rounded, size: 10, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Expanded(child: Text(deal['farmer_phone'] ?? "", style: GoogleFonts.outfit(fontSize: 11, color: Colors.blueGrey))),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 12, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Expanded(child: Text("${deal['village']}, ${deal['district']}", style: GoogleFonts.outfit(fontSize: 10, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      ],
+                    Text(
+                      "₹${deal['price']}", 
+                      style: GoogleFonts.outfit(color: const Color(0xFF10B981), fontWeight: FontWeight.w900, fontSize: 14)
                     ),
                   ],
                 ),
-                if (deal['profile_id'] == _userProfile?['id'])
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: InkWell(
-                      onTap: () => _showDeleteConfirmation(deal['id']),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), shape: BoxShape.circle),
-                        child: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
-                      ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 12, color: Color(0xFF64748B)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        "${deal['village']}, ${deal['district']}", 
+                        style: GoogleFonts.outfit(fontSize: 10, color: const Color(0xFF64748B), fontWeight: FontWeight.w500), 
+                        maxLines: 1, 
+                        overflow: TextOverflow.ellipsis
+                      )
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _showProductDetailPopup(deal),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isMine ? const Color(0xFFF1F5F9) : const Color(0xFF1B5E20),
+                      foregroundColor: isMine ? const Color(0xFF64748B) : Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(isMine ? Icons.visibility_rounded : Icons.shopping_cart_outlined, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          isMine ? "View" : "Add to cart", 
+                          style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold)
+                        ),
+                      ],
                     ),
                   ),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showProductDetailPopup(Map<String, dynamic> deal) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 20)),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with Back Arrow
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.black87),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Product Details", 
+                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B)),
+                    ),
+                  ],
+                ),
+              ),
+              
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                  child: Column(
+                    children: [
+                      // Product Image
+                      Container(
+                        width: double.infinity,
+                        height: 220,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          color: const Color(0xFFF8FAFC),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10)),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: deal['image_url'] != null
+                            ? Image.network(deal['image_url'], fit: BoxFit.cover)
+                            : const Icon(Icons.image_not_supported_rounded, size: 80, color: Color(0xFFCBD5E1)),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // Price Tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(
+                          "₹${deal['price']}",
+                          style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFF059669)),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      Text(
+                        deal['item_name'] ?? "Unknown Item",
+                        style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        deal['category'] ?? "General",
+                        style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFF64748B), fontWeight: FontWeight.w600, letterSpacing: 1),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Info Header
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Seller Information",
+                          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF064E3B), letterSpacing: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Contact Card
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          children: [
+                            _contactDetailRow(Icons.person_outline_rounded, "Farmer Name", deal['farmer_name']),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            ),
+                            _contactDetailRow(Icons.phone_outlined, "Phone Number", deal['farmer_phone']),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            ),
+                            _contactDetailRow(Icons.location_on_outlined, "Location", 
+                              "${deal['village']}, ${deal['district']}, ${deal['state']}"),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom Action Button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1B5E20),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 8,
+                      shadowColor: const Color(0xFF1B5E20).withOpacity(0.3),
+                    ),
+                    child: Text("Back to Marketplace", style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _contactDetailRow(IconData icon, String label, String? value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, size: 20, color: const Color(0xFF10B981)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.outfit(fontSize: 11, color: const Color(0xFF64748B), fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text(
+                (value == null || value.isEmpty) ? "Not provided" : value,
+                style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

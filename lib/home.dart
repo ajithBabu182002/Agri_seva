@@ -9,6 +9,7 @@ import 'farmerservice.dart';
 import 'labour.dart';
 import 'sub_homedetailsicon.dart';
 import 'solar_drying.dart';
+import 'micro_relay.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -616,50 +617,73 @@ class _HomePageState extends State<HomePage> {
           ),
           FarmerServicePage(filterCriteria: filterCriteria),
           SolarDryingPage(filterCriteria: filterCriteria),
+          MicroRelayPage(filterCriteria: filterCriteria),
         ],
       ),
       bottomNavigationBar: Container(
+        height: 85,
+        padding: const EdgeInsets.only(top: 10, bottom: 10), 
         decoration: BoxDecoration(
+          color: Colors.white,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
+            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 25, offset: const Offset(0, -5)),
           ],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          selectedItemColor: const Color(0xFF2E7D32),
-          unselectedItemColor: Colors.grey[400],
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          selectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 12),
-          unselectedLabelStyle: GoogleFonts.outfit(fontSize: 12),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _navItem(0, Icons.home_rounded, "Home"),
+              _navItem(1, Icons.engineering_rounded, "Labour"),
+              _navItem(2, Icons.grass_rounded, "Crops"),
+              _navItem(3, Icons.people_alt_rounded, "Services"),
+              _navItem(4, Icons.wb_sunny_rounded, "Drying"),
+              _navItem(5, Icons.local_shipping_rounded, "Micro-Relay"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData icon, String label) {
+    bool isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        margin: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4), // Reduced vertical padding
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1B5E20).withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? const Color(0xFF1B5E20) : Colors.grey[400],
+              size: 20,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.work_rounded),
-              label: 'Labour',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.grass_rounded),
-              label: 'Crop Details',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_alt_rounded),
-              label: 'Farmer Service',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.wb_sunny_rounded),
-              label: 'Solar Drying',
+            const SizedBox(height: 1),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 9,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                  color: isSelected ? const Color(0xFF1B5E20) : Colors.grey[500],
+                ),
+              ),
             ),
           ],
         ),

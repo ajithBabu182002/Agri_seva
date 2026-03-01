@@ -11,6 +11,7 @@ import 'sub_homedetailsicon.dart';
 import 'solar_drying.dart';
 import 'micro_relay.dart';
 import 'village_soil_pulse.dart';
+import 'border_breaker.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -620,6 +621,7 @@ class _HomePageState extends State<HomePage> {
           SolarDryingPage(filterCriteria: filterCriteria),
           MicroRelayPage(filterCriteria: filterCriteria),
           SoilPulsePage(filterCriteria: filterCriteria),
+          BorderBreakerPage(filterCriteria: filterCriteria),
         ],
       ),
       bottomNavigationBar: Container(
@@ -646,6 +648,7 @@ class _HomePageState extends State<HomePage> {
               _navItem(4, Icons.wb_sunny_rounded, "Drying"),
               _navItem(5, Icons.local_shipping_rounded, "Micro-Relay"),
               _navItem(6, Icons.analytics_rounded, "Soil Pulse"),
+              _navItem(7, Icons.public_rounded, "Global Export"),
             ],
           ),
         ),

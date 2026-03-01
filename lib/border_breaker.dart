@@ -15,6 +15,8 @@ class BorderBreakerPage extends StatefulWidget {
 class _BorderBreakerPageState extends State<BorderBreakerPage> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _lots = [];
+  List<Map<String, dynamic>> _demands = [];
+  
   final _cropController = TextEditingController();
   final _targetController = TextEditingController();
   final _gradeController = TextEditingController();
@@ -23,25 +25,46 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
   @override
   void initState() {
     super.initState();
-    _fetchLots();
+    _fetchData();
   }
 
-  Future<void> _fetchLots() async {
+  Future<void> _fetchData() async {
     try {
-      final response = await Supabase.instance.client
+      final lotsResponse = await Supabase.instance.client
           .from('export_lots')
           .select('*, profiles(*), export_pledges(*)');
 
+      final demandsResponse = await Supabase.instance.client
+          .from('global_demands')
+          .select('*')
+          .order('created_at', ascending: false);
+
       if (mounted) {
         setState(() {
-          _lots = List<Map<String, dynamic>>.from(response);
+          _lots = List<Map<String, dynamic>>.from(lotsResponse);
+          _demands = List<Map<String, dynamic>>.from(demandsResponse);
           _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint("Error fetching lots: $e");
+      debugPrint("Error fetching data: $e");
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _fillFromDemand(Map<String, dynamic> demand) {
+    setState(() {
+      _cropController.text = demand['crop_needed'];
+      _targetController.text = demand['quantity_required_kg'].toString();
+      _marketController.text = demand['country'];
+      _gradeController.text = demand['quality_specs'] ?? "Grade A";
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Auto-filled from ${demand['buyer_name']}"),
+        backgroundColor: const Color(0xFF1E3A8A),
+      ),
+    );
   }
 
   Future<void> _createLot() async {
@@ -59,8 +82,8 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
         'creator_id': user.id,
         'crop_name': _cropController.text.trim(),
         'target_quantity_kg': double.tryParse(_targetController.text) ?? 1000.0,
-        'quality_grade': _gradeController.text.trim() ?? "Grade A",
-        'destination_market': _marketController.text.trim() ?? "Global Market",
+        'quality_grade': _gradeController.text.trim().isEmpty ? "Grade A" : _gradeController.text.trim(),
+        'destination_market': _marketController.text.trim().isEmpty ? "Global Market" : _marketController.text.trim(),
         'status': 'open',
       });
 
@@ -70,7 +93,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
       _marketController.clear();
 
       if (!mounted) return;
-      await _fetchLots();
+      await _fetchData();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Global Export Lot Created!"), backgroundColor: Colors.green));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
@@ -82,6 +105,11 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
   Future<void> _pledgeStock(Map<String, dynamic> lot) async {
     final quantityController = TextEditingController();
     final user = Supabase.instance.client.auth.currentUser;
+
+    if (user?.id == lot['creator_id']) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("You are the lot creator. Add stock during creation.")));
+      return;
+    }
 
     await showDialog(
       context: context,
@@ -120,8 +148,8 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
                   'pledged_quantity_kg': quantity,
                 });
                 if (!mounted) return;
-                await _fetchLots();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Stoked Pledged to Global Lot!"), backgroundColor: Colors.green));
+                await _fetchData();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Stock Pledged to Global Lot!"), backgroundColor: Colors.green));
               } catch (e) {
                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
               } finally {
@@ -148,6 +176,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
           : CustomScrollView(
               slivers: [
                 _buildHeader(topPadding),
+                SliverToBoxAdapter(child: _buildDemandFeed()),
                 SliverToBoxAdapter(child: _buildCreateLotSection()),
                 _buildLotsGrid(),
               ],
@@ -168,10 +197,74 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Border-Breaker", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-            Text("Virtual Warehouse for Global Export", style: GoogleFonts.outfit(fontSize: 14, color: Colors.white70)),
+            Text("Connect directly with Global Buyers", style: GoogleFonts.outfit(fontSize: 14, color: Colors.white70)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDemandFeed() {
+    if (_demands.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 24, top: 24, bottom: 12),
+          child: Text("Live Global Demands", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
+        ),
+        SizedBox(
+          height: 160,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _demands.length,
+            itemBuilder: (context, index) {
+              final demand = _demands[index];
+              return GestureDetector(
+                onTap: () => _fillFromDemand(demand),
+                child: Container(
+                  width: 280,
+                  margin: const EdgeInsets.only(right: 16, bottom: 8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(demand['crop_needed'], style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: const Color(0xFF1E3A8A)))),
+                          Text(demand['offered_price_usd'] ?? "N/A", style: GoogleFonts.outfit(color: Colors.green[700], fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text("Buyer: ${demand['buyer_name']}", style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600])),
+                      Text("Market: ${demand['country']}", style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600])),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Icon(Icons.shopping_basket_outlined, size: 14, color: Colors.blue[800]),
+                          const SizedBox(width: 4),
+                          Text("Goal: ${demand['quantity_required_kg']}kg", style: GoogleFonts.outfit(fontSize: 12, color: Colors.blue[800], fontWeight: FontWeight.bold)),
+                          const Spacer(),
+                          Text("TAP TO SUPPLY", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange[800])),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -193,11 +286,13 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _inputField(_targetController, "Goal (e.g. 10000kg)", Icons.bolt, isNumeric: true)),
+              Expanded(child: _inputField(_targetController, "Target Quantity (kg)", Icons.bolt, isNumeric: true)),
               const SizedBox(width: 12),
               Expanded(child: _inputField(_marketController, "Market (e.g. Dubai)", Icons.public)),
             ],
           ),
+          const SizedBox(height: 12),
+          _inputField(_gradeController, "Quality Grade (e.g. Organic, Grade A)", Icons.verified_user_outlined),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -209,7 +304,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: Text("Start Global Consolidation", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              child: Text("Start Consolidation", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -240,7 +335,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
             children: [
               Icon(Icons.airplanemode_active, size: 60, color: Colors.blue[100]),
               const SizedBox(height: 12),
-              Text("No export lots building...", style: GoogleFonts.outfit(color: Colors.grey)),
+              Text("No active consolidation lots", style: GoogleFonts.outfit(color: Colors.grey)),
             ],
           ),
         ),
@@ -261,6 +356,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
     double target = (lot['target_quantity_kg'] as num).toDouble();
     double current = (lot['export_pledges'] as List).fold(0.0, (sum, item) => sum + (item['pledged_quantity_kg'] as num).toDouble());
     double progress = (current / target).clamp(0.0, 1.0);
+    double remaining = target - current;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -280,7 +376,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(lot['crop_name'], style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Text("Destination: ${lot['destination_market']}", style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey)),
+                  Text("Market: ${lot['destination_market']}", style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey)),
                 ],
               ),
               Container(
@@ -290,6 +386,8 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Text("Grade: ${lot['quality_grade']}", style: GoogleFonts.outfit(fontSize: 13, color: Colors.blue[900], fontWeight: FontWeight.w600)),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -309,7 +407,13 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
             ),
           ),
           const SizedBox(height: 12),
-          Text("${current.toStringAsFixed(0)}kg / ${target.toStringAsFixed(0)}kg collected", style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey[600])),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Collected: ${current.toStringAsFixed(0)}kg", style: GoogleFonts.outfit(fontSize: 11, color: Colors.grey[600])),
+              Text("Need: ${remaining.toStringAsFixed(0)}kg", style: GoogleFonts.outfit(fontSize: 11, color: Colors.orange[800], fontWeight: FontWeight.bold)),
+            ],
+          ),
           const Divider(height: 32),
           SizedBox(
             width: double.infinity,
@@ -320,7 +424,7 @@ class _BorderBreakerPageState extends State<BorderBreakerPage> {
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text(progress < 1.0 ? "Pledge My Stock" : "Lot is Ready for Export!", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+              child: Text(progress < 1.0 ? "Pledge My Stock" : "READY FOR EXPORT", style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
